@@ -24,6 +24,7 @@ public class MenuController : MonoBehaviour {
 	private HostData[] hostList;
 	public GameObject[] playerPrefab1 = new GameObject[5];
 	public GameObject[] playerPrefab2 = new GameObject[5];
+	public GameObject ballPrefab;
 	private MatrixAttributes matrixAttributes;
 	Vector3 spawningPosition;
 
@@ -72,6 +73,7 @@ public class MenuController : MonoBehaviour {
 	{
 		Debug.Log("Server Initializied");
 		SpawnPlayer1 ();
+		spawnBall ();
 	}
 
 	void OnConnectedToServer()
@@ -139,6 +141,15 @@ public class MenuController : MonoBehaviour {
 			spawnPlayer2Piece (2, 5, "25", 4);
 			break;
 		}
+	}
+
+	// Genera la pelota
+	private void spawnBall(){
+		matrixAttributes = ballPrefab.GetComponent<MatrixAttributes> ();
+		matrixAttributes.x = 7;
+		matrixAttributes.y = 5;
+		spawningPosition = GameObject.Find ("75").transform.position;
+		Network.Instantiate (ballPrefab, spawningPosition, ballPrefab.transform.rotation, 0);
 	}
 
 	// Genera una ficha del jugador 1
