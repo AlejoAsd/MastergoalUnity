@@ -33,11 +33,9 @@ public enum TipoFicha
 	Vacio,
 	Pelota,
 	BlancoFicha,
-	BlancoArqueroEnArea,
-	BlancoArqueroFueraArea,
+	BlancoArquero,
 	RojoFicha,
-	RojoArqueroEnArea,
-	RojoArqueroFueraArea
+	RojoArquero
 }
 
 public class BoardCell
@@ -56,7 +54,7 @@ public class BoardCell
 	public bool especial;
 	public bool arquero;
 	
-	BoardCell(int alto, int ancho, int x, int y)
+	public BoardCell(int alto, int ancho, int x, int y)
 	{
 		this.x = x;
 		this.y = y;
@@ -128,12 +126,34 @@ public class BoardCell
 			return ((influenciaRojo - influenciaBlanco) * (int)equipo) >= 0;
 		}
 	}
+
+	public void modificarInfluencia(TipoFicha ficha, bool inverso)
+	{
+		int Cantidad = 1 * (inverso ? -1 : 1);
+		
+		if (ficha == TipoFicha.BlancoArquero || ficha == TipoFicha.RojoArquero)
+		{
+			Cantidad *= 6;
+		}
+
+		if (ficha == TipoFicha.BlancoFicha || ficha == TipoFicha.BlancoArquero)
+		{
+			influenciaBlanco += Cantidad;
+		}
+		else if (ficha == TipoFicha.RojoFicha || ficha == TipoFicha.RojoArquero)
+		{
+			influenciaRojo += Cantidad;
+		}
+	}
 }
 
 public class PlayerController : MonoBehaviour {
 
+	// Dimensiones del tablero
+	static int ancho = 11, alto = 15;
+
 	// Matriz que representa el tablero de juego
-	public static char[,] board = new char[15, 11]; 
+	public static BoardCell[,] board = new BoardCell[alto, ancho]; 
 	
 	// Posicion de ficha y posicion destino
 	int fichaX, fichaY, ballX, ballY, destinoX, destinoY;
@@ -148,39 +168,43 @@ public class PlayerController : MonoBehaviour {
 	
 	void Start(){
 		// Cargo la matriz con 0s (celdas vacias)
-		for (int i = 0; i<=14; i++){
-			for(int j = 0; j<=10; j++){
-				board[i,j] = '0';
+		for (int i = 0; i < alto; i++)
+		{
+			for(int j = 0; j < ancho; j++)
+			{
+				board[i,j] = new BoardCell(alto, ancho, i, j);
+				board[i,j].ficha = TipoFicha.Vacio;
 			}
 		}
 
 		// Cargo la matriz con los valores segun el nivel
 		switch (MenuController.level) {
 		case 1:
-			board[10,5] = '1';
-			board[4,5] = '2';
+			board[10,5].ficha = TipoFicha.BlancoFicha;
+			board[4,5].ficha = TipoFicha.RojoFicha;
 			break;
 		case 2:
-			board[10,5] = '1';
-			board[12,5] = '1';
-			board[4,5] = '2';
-			board[2,5] = '2';
+			board[10,5].ficha = TipoFicha.BlancoFicha;
+			board[12,5].ficha = TipoFicha.BlancoFicha;
+			board[4,5].ficha = TipoFicha.RojoFicha;
+			board[2,5].ficha = TipoFicha.RojoFicha;
 			break;
 		case 3:
-			board[8,2] = '1';
-			board[8,8] = '1';
-			board[10,3] = '1';
-			board[10,7] = '1';
-			board[12,5] = '3';
+			board[8,2].ficha = TipoFicha.BlancoFicha;
+			board[8,8].ficha = TipoFicha.BlancoFicha;
+			board[10,3].ficha = TipoFicha.BlancoFicha;
+			board[10,7].ficha = TipoFicha.BlancoFicha;
+			board[12,5].ficha = TipoFicha.BlancoArquero;
 
-			board[6,2] = '2';
-			board[6,8] = '2';
-			board[4,3] = '2';
-			board[4,7] = '2';
-			board[2,5] = '4';
+			board[6,2].ficha = TipoFicha.RojoFicha;
+			board[6,8].ficha = TipoFicha.RojoFicha;
+			board[4,3].ficha = TipoFicha.RojoFicha;
+			board[4,7].ficha = TipoFicha.RojoFicha;
+			board[2,5].ficha = TipoFicha.RojoArquero;
 			break;
 		}
-		board[7,5] = '5';
+		board[7,5].ficha = TipoFicha.Pelota;
+
 		// Para manejo de turno
 		//networkView = GetComponent<NetworkView> ();
 		//turn = 1;
@@ -296,15 +320,15 @@ public class PlayerController : MonoBehaviour {
 	// Selecciona la casilla a donde mover la ficha, verifica si es un movimiento valido, y mueve la ficha
 	void movePiece(RaycastHit hit){
 		// Obtengo la posicion de la ficha
-		fichaX = GameObject.FindWithTag(selected).GetComponent<MatrixAttributes> ().x;
-		fichaY = GameObject.FindWithTag(selected).GetComponent<MatrixAttributes> ().y;
+		fichaX = GameObject.FindWithTag(selected).GetComponent<MatrixAttributes>().x;
+		fichaY = GameObject.FindWithTag(selected).GetComponent<MatrixAttributes>().y;
 		
 		// Obtengo la posicion destino
 		destinoX = GameObject.Find(hit.collider.name).GetComponent<MatrixAttributes>().x;
 		destinoY = GameObject.Find(hit.collider.name).GetComponent<MatrixAttributes>().y;
 		
 		// Verifico si es un movimiento valido
-		if (isValid(fichaX, fichaY, destinoX, destinoY)){
+		if (validarMovimiento(fichaX, fichaY, destinoX, destinoY)){
 			// Cargo nuevos valores en la matriz
 			GetComponent<NetworkView>().RPC ("setMatrix", RPCMode.All, fichaX, fichaY, destinoX, destinoY);
 			// Muevo la ficha
@@ -316,6 +340,8 @@ public class PlayerController : MonoBehaviour {
 			else
 				GameObject.FindWithTag(selected).GetComponent<Renderer>().material.color = Color.red;
 			selected = null;
+
+			// En caso que se encuentre en una posicion adyacente a la pelota, pasar a modo pase
 			if (getBall(destinoX, destinoY)){ 
 				ballSelected = true;
 				//selected = "BALL";
@@ -335,11 +361,11 @@ public class PlayerController : MonoBehaviour {
 		destinoY = GameObject.Find(hit.collider.name).GetComponent<MatrixAttributes>().y;
 		
 		// Verifico si es un movimiento valido
-		if (isValid(ballX, ballY, destinoX, destinoY)){
+		if (validarMovimiento(ballX, ballY, destinoX, destinoY)){
 			// Muevo la pelota, pinto y cargo los valores en la matriz tanto en el servidor como en el cliente
 			GetComponent<NetworkView>().RPC ("moveBallOnServerAndClient", RPCMode.All, destinoX, destinoY, hit.collider.transform.position, ballX, ballY);		
-			selected = null;
-			ballSelected = false;
+			/*selected = null;
+			ballSelected = false;*/
 			// if (ficha alrededor de la pelota){
 			//ballSelected = true;	
 			//GameObject.FindWithTag("BALL").GetComponent<Renderer>().material.color = Color.blue;
@@ -349,45 +375,64 @@ public class PlayerController : MonoBehaviour {
 	}
 
 	// Verifica si el movimiento a realizar es valido
-	bool isValid(int fichaX, int fichaY, int destinoX, int destinoY){
-		if ( board[destinoX, destinoY] == '0' ){
+	bool validarMovimiento(int fichaX, int fichaY, int destinoX, int destinoY)
+	{
+		if ( board[destinoX, destinoY].ficha == TipoFicha.Vacio )
+		{
 			return true;
 		}
 		return false;
+	}
+
+	// Modifica la influencia de las casillas adyacentes a una posicion
+	void modificarInfluencia(int x, int y, bool inverso)
+	{
+		for (int i = (x - 1); i <= (x + 1); i++)
+		{
+			for (int j = (y - 1); j <= (y + 1); j++)
+			{
+				if ((i != x || j != y) &&
+				    i > 0 && i < (alto - 2) &&
+				    j >= 0 && j < ancho)
+				{
+					board[i,j].modificarInfluencia(board[x,y].ficha, inverso);
+				}
+			}
+		}
 	}
 
 	// Verifica si la pelota se encuentra alrededor de la ficha
 	bool getBall(int x, int y){
 		// En caso de que la ficha se encuentre en un limite de la matriz
 		if (x == 0) {
-			if (board [x, y - 1] == '5' || board [x, y + 1] == '5' || board [x + 1, y + 1] == '5' ||
-			    board [x + 1, y] == '5' || board [x + 1, y - 1] == '5' 
+			if (board [x, y - 1].ficha == TipoFicha.Pelota || board [x, y + 1].ficha == TipoFicha.Pelota || board [x + 1, y + 1].ficha == TipoFicha.Pelota ||
+			    board [x + 1, y].ficha == TipoFicha.Pelota || board [x + 1, y - 1].ficha == TipoFicha.Pelota 
 			    )
 				return true;
 		}
 		if (x == 14) {
-			if (board [x, y - 1] == '5' || board [x - 1, y - 1] == '5' || board [x - 1, y] == '5' || 
-			    board [x - 1, y + 1] == '5' || board [x, y + 1] == '5' 
+			if (board [x, y - 1].ficha == TipoFicha.Pelota || board [x - 1, y - 1].ficha == TipoFicha.Pelota || board [x - 1, y].ficha == TipoFicha.Pelota || 
+			    board [x - 1, y + 1].ficha == TipoFicha.Pelota || board [x, y + 1].ficha == TipoFicha.Pelota 
 			    )
 				return true;		
 		}
 		if (y == 0) {
-			if (board [x - 1, y] == '5' || board [x - 1, y + 1] == '5' || board [x, y + 1] == '5' || 
-			    board [x + 1, y + 1] == '5' || board [x + 1, y] == '5' 
+			if (board [x - 1, y].ficha == TipoFicha.Pelota || board [x - 1, y + 1].ficha == TipoFicha.Pelota || board [x, y + 1].ficha == TipoFicha.Pelota || 
+			    board [x + 1, y + 1].ficha == TipoFicha.Pelota || board [x + 1, y].ficha == TipoFicha.Pelota 
 			    )
 				return true;
 		}
 		if (y == 10) {
-			if (board [x, y - 1] == '5' || board [x - 1, y - 1] == '5' || board [x - 1, y] == '5' || 
-			    board [x + 1, y] == '5' || board [x + 1, y - 1] == '5' 
+			if (board [x, y - 1].ficha == TipoFicha.Pelota || board [x - 1, y - 1].ficha == TipoFicha.Pelota || board [x - 1, y].ficha == TipoFicha.Pelota || 
+			    board [x + 1, y].ficha == TipoFicha.Pelota || board [x + 1, y - 1].ficha == TipoFicha.Pelota 
 			    )
 				return true;
 		}
 		// En caso de que la ficha no se encuentre en un limite de la matriz
 		if (x != 0 && x != 14 && y != 0 && y != 10) {
-			if (board [x, y - 1] == '5' || board [x - 1, y - 1] == '5' || board [x - 1, y] == '5' || 
-			    board [x - 1, y + 1] == '5' || board [x, y + 1] == '5' || board [x + 1, y + 1] == '5' ||
-			    board [x + 1, y] == '5' || board [x + 1, y - 1] == '5' 
+			if (board [x, y - 1].ficha == TipoFicha.Pelota || board [x - 1, y - 1].ficha == TipoFicha.Pelota || board [x - 1, y].ficha == TipoFicha.Pelota || 
+			    board [x - 1, y + 1].ficha == TipoFicha.Pelota || board [x, y + 1].ficha == TipoFicha.Pelota || board [x + 1, y + 1].ficha == TipoFicha.Pelota ||
+			    board [x + 1, y].ficha == TipoFicha.Pelota || board [x + 1, y - 1].ficha == TipoFicha.Pelota 
 			    )
 				return true;
 		}
@@ -397,8 +442,8 @@ public class PlayerController : MonoBehaviour {
 	// Carga el nuevo movimiento en la matriz
 	[RPC]
 	void setMatrix(int fichaX, int fichaY, int destinoX, int destinoY){
-		board [destinoX, destinoY] = board [fichaX, fichaY];
-		board[fichaX, fichaY] = '0';	
+		board[destinoX, destinoY].ficha = board[fichaX, fichaY].ficha;
+		board[fichaX, fichaY].ficha = TipoFicha.Vacio;	
 	}
 
 	// Mueve la pelota en el servidor y en el cliente
@@ -412,8 +457,11 @@ public class PlayerController : MonoBehaviour {
 		GameObject.FindWithTag("BALL").transform.position = pos;
 		GameObject.FindWithTag("BALL").GetComponent<Renderer>().material.color = Color.yellow;
 		// Actualizo la matriz (hardcoded porque no andaba llamando a setMatrix)
-		board [destX, destY] = '5';
-		board[origX, origY] = '0';	
+		// No anda llamando a setMatrix porque esta funcion ya se ejecuta en el servidor
+		selected = null;
+		ballSelected = false;
+		board[destX, destY].ficha = TipoFicha.Pelota;
+		board[origX, origY].ficha = TipoFicha.Vacio;	
 	}
 
 	/*
