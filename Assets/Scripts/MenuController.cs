@@ -10,6 +10,20 @@ static class Constants
 	
 }
 
+
+public class marcadores
+{
+
+	public static string errorText= "Error";// solo reemplazar esto para tener los mensajes
+	public static int puntajeRojo=0;
+	public static int puntajeBlanco=0;
+	public static bool ShowLabel= false;
+
+
+}
+
+
+
 public class MenuController : MonoBehaviour {
 
 	/**************************** Variables ****************************/
@@ -42,6 +56,14 @@ public class MenuController : MonoBehaviour {
 	public GUIStyle customStyle;
 	public GUIStyle customButton;
 	public GUIStyle customBox;
+	public GUIStyle marcadorStyle;
+
+	/*// para mensajes de error
+	public string errorText= "Error";// solo reemplazar esto para tener los mensajes
+	public int puntajeRojo=0;
+	public int puntajeBlanco=0;
+	public bool ShowLabel= false;*/
+	
 
 	/**************************** Funciones de red ****************************/ 
 	//Inicializar servidor
@@ -279,6 +301,16 @@ public class MenuController : MonoBehaviour {
 		if (screenValue == Constants.GAME) {
 
 			// Evento a llamar al apretar el boton de atras de android
+
+		
+
+			if(marcadores.ShowLabel)// esto es para los mensajes de error
+				GUI.Label (new Rect (500,10,200,40), marcadores.errorText,marcadorStyle);
+
+			// esto es para los puntajes
+			GUI.Label (new Rect (10,10,200,20), ("Blanco = " + marcadores.puntajeBlanco),marcadorStyle);
+			GUI.Label (new Rect (80,10,200,20), ("Rojo =" + marcadores.puntajeRojo),marcadorStyle);
+
 			if (Input.GetKeyUp(KeyCode.Escape)) { 
 				Network.Disconnect();
 				MasterServer.UnregisterHost();
