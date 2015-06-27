@@ -1,6 +1,5 @@
-# Ignorar todo
-*
-# Excepto el gitignore y las carpetas relevantes
-!.gitignore
-Assets
-ProjectSettings
+Library/
+Temp/
+*.csproj
+*.sln
+*.userprefs

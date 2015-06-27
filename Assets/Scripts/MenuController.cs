@@ -88,8 +88,8 @@ public class MenuController : MonoBehaviour {
 	}
 
 	void OnPlayerDisconnected(){
-		Network.Disconnect();
-		MasterServer.UnregisterHost();
+		Network.Disconnect ();
+		MasterServer.UnregisterHost ();
 		screenValue = Constants.MAIN;
 	}
 
