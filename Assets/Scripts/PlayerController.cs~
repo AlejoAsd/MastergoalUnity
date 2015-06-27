@@ -3,6 +3,7 @@ using System.Collections;
 
 public enum EstadoJuego
 {
+	Iniciando,
 	Juego,
 	Pase,
 	Movimiento,
@@ -43,7 +44,7 @@ public class BoardCell
 	public bool especial;
 	public bool arquero;
     
-	public BoardCell (int alto, int ancho, int x, int y)
+	public BoardCell(int alto, int ancho, int x, int y)
 	{
 		this.x = x;
 		this.y = y;
@@ -59,8 +60,7 @@ public class BoardCell
 		{
 			equipo = Equipo.Blanco;
 		}
-		else
-		if (x < (alto / 2))
+		else if (x < (alto / 2))
 		{
 			equipo = Equipo.Rojo;
 		}
@@ -138,8 +138,7 @@ public class BoardCell
 		{
 			influenciaBlanco += Cantidad;
 		}
-		else
-		if (ficha == TipoFicha.RojoFicha || ficha == TipoFicha.RojoArquero)
+		else if (ficha == TipoFicha.RojoFicha || ficha == TipoFicha.RojoArquero)
 		{
 			influenciaRojo += Cantidad;
 		}
@@ -166,8 +165,7 @@ public class BoardCell
 		{
 			return Equipo.Blanco;
 		}
-		else
-		if (ficha == TipoFicha.RojoFicha || ficha == TipoFicha.RojoArquero)
+		else if (ficha == TipoFicha.RojoFicha || ficha == TipoFicha.RojoArquero)
 		{
 			return Equipo.Rojo;
 		}
@@ -180,6 +178,7 @@ public class BoardCell
 
 public class PlayerController : MonoBehaviour
 {
+	public const string IDENTIFICADOR_PELOTA = "BALL";
 
 	// Dimensiones del tablero
 	static int ancho = 11, alto = 15, anchoArco = 5;
@@ -195,6 +194,9 @@ public class PlayerController : MonoBehaviour
 	public static Equipo turno = Equipo.Blanco;
 
 	// Variable que almacena el tag de la ficha seleccionada
+	// HACK
+	//EstadoJuego estado = EstadoJuego.Iniciando;
+	EstadoJuego estado = EstadoJuego.Juego;
 	string selected = null;
 	public static bool ballSelected = false;
 
@@ -209,7 +211,7 @@ public class PlayerController : MonoBehaviour
 	{
 		marcador1 = 0;
 		marcador2 = 0;
-		initializeMatrix ();
+		initializeMatrix();
 	}
 
 	// Inicializa la matriz con los valores segun las posiciones de las fichas
@@ -220,7 +222,7 @@ public class PlayerController : MonoBehaviour
 		{
 			for (int j = 0; j < ancho; j++)
 			{
-				board [i, j] = new BoardCell (alto, ancho, i, j);
+				board[i, j] = new BoardCell(alto, ancho, i, j);
 			}
 		}
 		
@@ -228,43 +230,49 @@ public class PlayerController : MonoBehaviour
 		switch (MenuController.level)
 		{
 			case 1:
-				board [10, 5].ficha = TipoFicha.BlancoFicha;
-				board [4, 5].ficha = TipoFicha.RojoFicha;
+				setFicha(10, 5, TipoFicha.BlancoFicha);
+				setFicha(4, 5, TipoFicha.RojoFicha);
 				break;
 			case 2:
-				board [10, 5].ficha = TipoFicha.BlancoFicha;
-				board [12, 5].ficha = TipoFicha.BlancoFicha;
-				board [4, 5].ficha = TipoFicha.RojoFicha;
-				board [2, 5].ficha = TipoFicha.RojoFicha;
+				setFicha(10, 5, TipoFicha.BlancoFicha);
+				setFicha(12, 5, TipoFicha.BlancoFicha);
+				setFicha(4, 5, TipoFicha.RojoFicha);
+				setFicha(2, 5, TipoFicha.RojoFicha);
 				break;
 			case 3:
-				board [8, 2].ficha = TipoFicha.BlancoFicha;
-				board [8, 8].ficha = TipoFicha.BlancoFicha;
-				board [10, 3].ficha = TipoFicha.BlancoFicha;
-				board [10, 7].ficha = TipoFicha.BlancoFicha;
-				board [12, 5].ficha = TipoFicha.BlancoArquero;
+				setFicha(8, 2, TipoFicha.BlancoFicha);
+				setFicha(8, 8, TipoFicha.BlancoFicha);
+				setFicha(10, 3, TipoFicha.BlancoFicha);
+				setFicha(10, 7, TipoFicha.BlancoFicha);
+				setFicha(12, 5, TipoFicha.BlancoArquero);
 			
-				board [6, 2].ficha = TipoFicha.RojoFicha;
-				board [6, 8].ficha = TipoFicha.RojoFicha;
-				board [4, 3].ficha = TipoFicha.RojoFicha;
-				board [4, 7].ficha = TipoFicha.RojoFicha;
-				board [2, 5].ficha = TipoFicha.RojoArquero;
+				setFicha(6, 2, TipoFicha.RojoFicha);
+				setFicha(6, 8, TipoFicha.RojoFicha);
+				setFicha(4, 3, TipoFicha.RojoFicha);
+				setFicha(4, 7, TipoFicha.RojoFicha);
+				setFicha(2, 5, TipoFicha.RojoArquero);
 				break;
 		}
-		board [7, 5].ficha = TipoFicha.Pelota;
+		setFicha(7, 5, TipoFicha.Pelota);
 	}
 
 	void Update ()
 	{   
-		if (GetComponent<NetworkView> ().isMine)
+		if (GetComponent<NetworkView>().isMine)
 		{
-			InputMovement ();
+			InputMovement();
 		}
 
 		if (Network.peerType == NetworkPeerType.Disconnected)
 		{
-			Network.Destroy (GetComponent<NetworkView> ().viewID);
+			Network.Destroy(GetComponent<NetworkView>().viewID);
 		}
+
+		/* HACK // No permitir jugar hasta que hayan dos jugadores
+		if (Network.isServer && Network.connections.Length == Network.maxConnections && estado == EstadoJuego.Iniciando)
+		{
+			setEstado(EstadoJuego.Juego);
+		}*/
 	}
 
 	void OnGUI ()
@@ -272,17 +280,17 @@ public class PlayerController : MonoBehaviour
 		if (end)
 		{
 			// Boton Volver al Menu Principal
-			if (GUI.Button (new Rect (Screen.width / 4, Screen.height / 3 + Screen.width / 6 + 60, Screen.width / 2, Screen.width / 6), "Volver al Menu Principal"))
+			if (GUI.Button(new Rect(Screen.width / 4, Screen.height / 3 + Screen.width / 6 + 60, Screen.width / 2, Screen.width / 6), "Volver al Menu Principal"))
 			{
 				// si es cliente solo cambiar screenValue
 				// si es servidor, cambiar screenValue
 				// luego de que el cliente haya cambiado el screenValue desconectar (atender que al desconectar tanto cliente como servidor van al main)
 				
 				// Mientras tanto si uno aprieta el boton los dos vuelven (cliente servidor)
-				GetComponent<NetworkView> ().RPC ("setEnd", RPCMode.All, false);
+				GetComponent<NetworkView>().RPC("setEnd", RPCMode.All, false);
 				MenuController.screenValue = Constants.MAIN; 
-				Network.Disconnect ();
-				MasterServer.UnregisterHost ();
+				Network.Disconnect();
+				MasterServer.UnregisterHost();
 				
 			}
 		}
@@ -290,46 +298,44 @@ public class PlayerController : MonoBehaviour
 
 	void InputMovement ()
 	{
-		if (Input.GetMouseButtonDown (0))
+		if (Input.GetMouseButtonDown(0))
 		{
-			Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 			RaycastHit hit;
-			if (Physics.Raycast (ray, out hit, Mathf.Infinity))
+			if (Physics.Raycast(ray, out hit, Mathf.Infinity) && estado == EstadoJuego.Juego)
 			{
-				
-				if (Network.peerType == NetworkPeerType.Server /*&& turn == 1*/)
+				if (Network.peerType == NetworkPeerType.Server /*&& turno == Equipo.Blanco*/)
 				{
-					
-					if (ballSelected == false)
+					if (selected != IDENTIFICADOR_PELOTA)
 					{
 						// Selecciono o deselecciono la ficha presionada
 						if (hit.collider.tag == "P1F1")
 						{
-							selectDeselectPiece ("P1F1");
+							selectDeselectPiece("P1F1");
 							restart = false;
 						}
 						
 						if (hit.collider.tag == "P1F2")
 						{
-							selectDeselectPiece ("P1F2");
+							selectDeselectPiece("P1F2");
 							restart = false;
 						}
 						
 						if (hit.collider.tag == "P1F3")
 						{
-							selectDeselectPiece ("P1F3");
+							selectDeselectPiece("P1F3");
 							restart = false;
 						}
 						
 						if (hit.collider.tag == "P1F4")
 						{
-							selectDeselectPiece ("P1F4");
+							selectDeselectPiece("P1F4");
 							restart = false;
 						}
 						
 						if (hit.collider.tag == "P1F5")
 						{
-							selectDeselectPiece ("P1F5");
+							selectDeselectPiece("P1F5");
 							restart = false;
 						}
 						
@@ -338,7 +344,7 @@ public class PlayerController : MonoBehaviour
 						{
 							if (restart == false)
 							{
-								movePiece (hit);
+								movePiece(hit);
 							}
 						}
 					}
@@ -346,44 +352,44 @@ public class PlayerController : MonoBehaviour
 					{
 						if (hit.collider.tag == "Box")
 						{
-							moveBall (hit);
-							evaluate ();
+							moveBall(hit);
+							evaluate();
 						}
 					}
 				}
 				
-				if (Network.peerType == NetworkPeerType.Client /*&& turn == 2*/)
+				if (Network.peerType == NetworkPeerType.Client /*&& turno == Equipo.Rojo*/)
 				{
-					if (ballSelected == false)
+					if (selected != IDENTIFICADOR_PELOTA)
 					{
 						// Selecciono o deselecciono la ficha presionada
 						if (hit.collider.tag == "P2F1")
 						{
-							selectDeselectPiece ("P2F1");
+							selectDeselectPiece("P2F1");
 							restart = false;
 						}
 						
 						if (hit.collider.tag == "P2F2")
 						{
-							selectDeselectPiece ("P2F2");
+							selectDeselectPiece("P2F2");
 							restart = false;
 						}
 						
 						if (hit.collider.tag == "P2F3")
 						{
-							selectDeselectPiece ("P2F3");
+							selectDeselectPiece("P2F3");
 							restart = false;
 						}
 						
 						if (hit.collider.tag == "P2F4")
 						{
-							selectDeselectPiece ("P2F4");
+							selectDeselectPiece("P2F4");
 							restart = false;
 						}
 						
 						if (hit.collider.tag == "P2F5")
 						{
-							selectDeselectPiece ("P2F5");
+							selectDeselectPiece("P2F5");
 							restart = false;
 						}
 						
@@ -392,7 +398,7 @@ public class PlayerController : MonoBehaviour
 						{
 							if (restart == false)
 							{
-								movePiece (hit);
+								movePiece(hit);
 							}
 						}
 					}
@@ -400,8 +406,8 @@ public class PlayerController : MonoBehaviour
 					{
 						if (hit.collider.tag == "Box")
 						{
-							moveBall (hit);
-							evaluate ();
+							moveBall(hit);
+							evaluate();
 						}
 					}
 				}
@@ -414,7 +420,7 @@ public class PlayerController : MonoBehaviour
 	{
 		if (selected == null)
 		{
-			GameObject.FindWithTag (tag).GetComponent<Renderer> ().material.color = Color.blue;
+			GameObject.FindWithTag(tag).GetComponent<Renderer>().material.color = Color.blue;
 			selected = tag;
 		}
 		else
@@ -423,11 +429,11 @@ public class PlayerController : MonoBehaviour
 			{
 				if (Network.peerType == NetworkPeerType.Server)
 				{
-					GameObject.FindWithTag (tag).GetComponent<Renderer> ().material.color = Color.white;
+					GameObject.FindWithTag(tag).GetComponent<Renderer>().material.color = Color.white;
 				}
 				else
 				{
-					GameObject.FindWithTag (tag).GetComponent<Renderer> ().material.color = Color.red;
+					GameObject.FindWithTag(tag).GetComponent<Renderer>().material.color = Color.red;
 				}
 				selected = null;
 			}
@@ -438,59 +444,51 @@ public class PlayerController : MonoBehaviour
 	void movePiece (RaycastHit hit)
 	{
 		// Obtengo la posicion de la ficha
-		fichaX = GameObject.FindWithTag (selected).GetComponent<MatrixAttributes> ().x;
-		fichaY = GameObject.FindWithTag (selected).GetComponent<MatrixAttributes> ().y;
+		fichaX = GameObject.FindWithTag(selected).GetComponent<MatrixAttributes>().x;
+		fichaY = GameObject.FindWithTag(selected).GetComponent<MatrixAttributes>().y;
         
 		// Obtengo la posicion destino
-		destinoX = GameObject.Find (hit.collider.name).GetComponent<MatrixAttributes> ().x;
-		destinoY = GameObject.Find (hit.collider.name).GetComponent<MatrixAttributes> ().y;
+		destinoX = GameObject.Find(hit.collider.name).GetComponent<MatrixAttributes>().x;
+		destinoY = GameObject.Find(hit.collider.name).GetComponent<MatrixAttributes>().y;
         
 		// Verifico si es un movimiento valido
-		if (validarMovimiento (fichaX, fichaY, destinoX, destinoY))
+		if (validarMovimiento(fichaX, fichaY, destinoX, destinoY))
 		{
-			// Cargo nuevos valores en la matriz
-			GetComponent<NetworkView> ().RPC ("setMatrix", RPCMode.All, fichaX, fichaY, destinoX, destinoY);
-			//imprimirInfluencia();
-			// Muevo la ficha
-			GameObject.FindWithTag (selected).GetComponent<MatrixAttributes> ().x = destinoX; 
-			GameObject.FindWithTag (selected).GetComponent<MatrixAttributes> ().y = destinoY;
-			GameObject.FindWithTag (selected).transform.position = hit.collider.transform.position;
-			if (Network.peerType == NetworkPeerType.Server)
-			{
-				GameObject.FindWithTag (selected).GetComponent<Renderer> ().material.color = Color.white;
-			}
-			else
-			{
-				GameObject.FindWithTag (selected).GetComponent<Renderer> ().material.color = Color.red;
-			}
-			selected = null;
+			// Actualizar los valores de la matriz
+			GetComponent<NetworkView>().RPC("setMatrix", RPCMode.All, fichaX, fichaY, destinoX, destinoY);
+
+			// Mover la ficha
+			GameObject.FindWithTag(selected).GetComponent<MatrixAttributes>().x = destinoX; 
+			GameObject.FindWithTag(selected).GetComponent<MatrixAttributes>().y = destinoY;
+			GameObject.FindWithTag(selected).transform.position = hit.collider.transform.position;
+
+			// Deseleccionar la ficha
+			selectDeselectPiece(selected);
 
 			// En caso que se encuentre en una posicion adyacente a la pelota, pasar a modo pase
-			if (getBall (destinoX, destinoY))
-			{ 
-				ballSelected = true;
-				//selected = "BALL";
-				GameObject.FindWithTag ("BALL").GetComponent<Renderer> ().material.color = Color.blue;
+			if (getBall(destinoX, destinoY))
+			{
+				selectDeselectPiece(IDENTIFICADOR_PELOTA);
+				//GameObject.FindWithTag("BALL").GetComponent<Renderer>().material.color = Color.blue;
 			}
-			//networkView.RPC ("setTurn", RPCMode.All);
 		}
 	}
 
 	void moveBall (RaycastHit hit)
 	{
 		// Obtengo la posicion de la ficha
-		ballX = GameObject.FindWithTag ("BALL").GetComponent<MatrixAttributes> ().x;
-		ballY = GameObject.FindWithTag ("BALL").GetComponent<MatrixAttributes> ().y;
+		ballX = GameObject.FindWithTag("BALL").GetComponent<MatrixAttributes>().x;
+		ballY = GameObject.FindWithTag("BALL").GetComponent<MatrixAttributes>().y;
         
 		// Obtengo la posicion destino
-		destinoX = GameObject.Find (hit.collider.name).GetComponent<MatrixAttributes> ().x;
-		destinoY = GameObject.Find (hit.collider.name).GetComponent<MatrixAttributes> ().y;
+		destinoX = GameObject.Find(hit.collider.name).GetComponent<MatrixAttributes>().x;
+		destinoY = GameObject.Find(hit.collider.name).GetComponent<MatrixAttributes>().y;
         
 		// Verifico si es un movimiento valido
-		if (validarMovimiento (ballX, ballY, destinoX, destinoY))
+		if (validarMovimiento(ballX, ballY, destinoX, destinoY))
 		{
 			// Muevo la pelota, pinto y cargo los valores en la matriz tanto en el servidor como en el cliente
-			GetComponent<NetworkView> ().RPC ("moveBallOnServerAndClient", RPCMode.All, destinoX, destinoY, hit.collider.transform.position, ballX, ballY);
+			GetComponent<NetworkView>().RPC("moveBallOnServerAndClient", RPCMode.All, destinoX, destinoY, hit.collider.transform.position, ballX, ballY);
 		}
 	}
 
@@ -499,8 +497,8 @@ public class PlayerController : MonoBehaviour
 	{
 		int arcoOffset = (ancho - anchoArco) / 2;
 		string mensaje = string.Empty;
-		BoardCell ficha = board [fichaX, fichaY];
-		BoardCell destino = board [destinoX, destinoY];
+		BoardCell ficha = board[fichaX, fichaY];
+		BoardCell destino = board[destinoX, destinoY];
         
 		/// Validar destino
 		// Asegurar que esté dentro del tablero. Los tableros cuentan como fuera del arco excepto en el caso de la pelota.
@@ -508,7 +506,7 @@ public class PlayerController : MonoBehaviour
 			destinoY < 0 || destinoY >= ancho)
 		{
 			mensaje = "Casilla invalida";
-			mensajeError (mensaje);
+			mensajeError(mensaje);
 			return false;
 		}
         
@@ -518,7 +516,7 @@ public class PlayerController : MonoBehaviour
 			(destinoY >= arcoOffset || destinoY <= arcoOffset + anchoArco))
 		{
 			mensaje = "Los jugadores no pueden entrar al arco";
-			mensajeError (mensaje);
+			mensajeError(mensaje);
 			return false;
 		}
         
@@ -527,15 +525,15 @@ public class PlayerController : MonoBehaviour
 			destino.corner)
 		{
 			mensaje = "No se puede mover a un corner propio";
-			mensajeError (mensaje);
+			mensajeError(mensaje);
 			return false;
 		}
         
 		// Asegurar que al mover la pelota la casilla pertenezca al equipo de turno
-		if (ficha.ficha == TipoFicha.Pelota && !destino.tieneInfluencia (turno, false))
+		if (ficha.ficha == TipoFicha.Pelota && !destino.tieneInfluencia(turno, false))
 		{
 			mensaje = "La pelota no puede terminar en posesion del oponente";
-			mensajeError (mensaje);
+			mensajeError(mensaje);
 			return false;
 		}
         
@@ -544,10 +542,10 @@ public class PlayerController : MonoBehaviour
 			pases == pasesMaximos)
 		{
 			// Casilla neutra
-			if (!destino.influenciaNeutra ())
+			if (!destino.influenciaNeutra())
 			{
 				mensaje = "Solo queda un pase disponible. La pelota debe quedar en una casilla neutra";
-				mensajeError (mensaje);
+				mensajeError(mensaje);
 				return false;
 			}
 		}
@@ -558,13 +556,13 @@ public class PlayerController : MonoBehaviour
 			turno == destino.equipo)
 		{
 			mensaje = "La pelota no puede terminar del lado del equipo que empieza";
-			mensajeError (mensaje);
+			mensajeError(mensaje);
 			return false;
 		}
         
 		/// Validar movimiento
-		int deltaDestinoX = System.Math.Abs (destinoX - ficha.x);
-		int deltaDestinoY = System.Math.Abs (destinoY - ficha.y);
+		int deltaDestinoX = System.Math.Abs(destinoX - ficha.x);
+		int deltaDestinoY = System.Math.Abs(destinoY - ficha.y);
 		int maximoMovimientos = ficha.ficha == TipoFicha.Pelota ? 4 : 2;
         
 		// El movimiento es en línea recta
@@ -573,7 +571,7 @@ public class PlayerController : MonoBehaviour
 			deltaDestinoX != deltaDestinoY))
 		{
 			mensaje = "El movimiento debe ser recto";
-			mensajeError (mensaje);
+			mensajeError(mensaje);
 			return false;
 		}
         
@@ -582,7 +580,7 @@ public class PlayerController : MonoBehaviour
 			deltaDestinoY > maximoMovimientos)
 		{
 			mensaje = "No se puede desplazar esa cantidad de casillas";
-			mensajeError (mensaje);
+			mensajeError(mensaje);
 			return false;
 		}
         
@@ -590,7 +588,7 @@ public class PlayerController : MonoBehaviour
 		if (destino.ficha != TipoFicha.Vacio)
 		{
 			mensaje = "Se debe mover a una casilla libre";
-			mensajeError (mensaje);
+			mensajeError(mensaje);
 			return false;
 		}
 		// La casilla objetivo (y las adyacentes en caso de haber un arquero) está libre
@@ -599,22 +597,21 @@ public class PlayerController : MonoBehaviour
 			for (int i = -1; i <= 1; i+=2)
 			{
 				if (destinoY + i >= 0 && destinoY + i < ancho &&
-					board [destinoX, destinoY + i] != ficha &&
-					board [destinoX, destinoY + i].ficha != TipoFicha.Vacio &&
-					board [destinoX, destinoY + i].ficha != TipoFicha.Pelota)
+					board[destinoX, destinoY + i] != ficha &&
+					board[destinoX, destinoY + i].ficha != TipoFicha.Vacio &&
+					board[destinoX, destinoY + i].ficha != TipoFicha.Pelota)
 				{
-					if (ficha.esArquero (false))
+					if (ficha.esArquero(false))
 					{
 						mensaje = "Una casilla adyacente no se encuentra libre";
 					}
-					else
-					if (board [destinoX, destinoY + i].esArquero (false))
+					else if (board[destinoX, destinoY + i].esArquero(false))
 					{
 						mensaje = "No se puede terminar en una casilla adyacente al arquero";
 					}
 					if (mensaje != string.Empty)
 					{
-						mensajeError (mensaje);
+						mensajeError(mensaje);
 						return false;
 					}
 				}
@@ -624,13 +621,13 @@ public class PlayerController : MonoBehaviour
 		// Asegurar que no sea un autopase
 		if (ficha.ficha == TipoFicha.Pelota)
 		{
-			BoardCell fichaPase = obtenerFichaPase (fichaX, fichaY);
-			BoardCell fichaReceptora = obtenerFichaPase (destinoX, destinoY);
+			BoardCell fichaPase = obtenerFichaPase(fichaX, fichaY);
+			BoardCell fichaReceptora = obtenerFichaPase(destinoX, destinoY);
             
 			if (fichaPase != null && fichaPase == fichaReceptora)
 			{
 				mensaje = "No se puede hacer un autopase";
-				mensajeError (mensaje);
+				mensajeError(mensaje);
 				return false;
 			}
 		}
@@ -638,16 +635,16 @@ public class PlayerController : MonoBehaviour
 		// Asegurar que el movimiento del jugador no rompa el balance de influencia
 		if (ficha.ficha != TipoFicha.Pelota)
 		{
-			BoardCell pelota = obtenerPelotaAdyacente (ficha);
+			BoardCell pelota = obtenerPelotaAdyacente(ficha);
 			if (pelota != null)
 			{
-				int deltaX = System.Math.Abs (pelota.x - ficha.x);
-				int deltaY = System.Math.Abs (pelota.y - ficha.y);
+				int deltaX = System.Math.Abs(pelota.x - ficha.x);
+				int deltaY = System.Math.Abs(pelota.y - ficha.y);
                 
 				if (deltaX > 1 || deltaY > 1)
 				{
 					mensaje = "No se puede perder la neutralidad de la pelota";
-					mensajeError (mensaje);
+					mensajeError(mensaje);
 					return false;
 				}
 			}
@@ -657,10 +654,10 @@ public class PlayerController : MonoBehaviour
 		if (ficha.ficha == TipoFicha.Pelota &&
 			destino.area &&
 			destino.equipo == turno &&
-			obtenerFichaPase (destinoX, destinoY) == null)
+			obtenerFichaPase(destinoX, destinoY) == null)
 		{
 			mensaje = "La pelota debe quedar fuera del area";
-			mensajeError (mensaje);
+			mensajeError(mensaje);
 			return false;
 		}
         
@@ -673,8 +670,7 @@ public class PlayerController : MonoBehaviour
 		{
 			direccionDestinoX = 1;
 		}
-		else
-		if (ficha.x > destinoX)
+		else if (ficha.x > destinoX)
 		{
 			direccionDestinoX = -1;
 		}
@@ -684,8 +680,7 @@ public class PlayerController : MonoBehaviour
 		{
 			direccionDestinoY = 1;
 		}
-		else
-		if (ficha.y > destinoY)
+		else if (ficha.y > destinoY)
 		{
 			direccionDestinoY = -1;
 		}
@@ -702,32 +697,31 @@ public class PlayerController : MonoBehaviour
 			// En caso de ser la pelota debe saltar fichas excepto si es un arquero en el area
 			if (ficha.ficha == TipoFicha.Pelota &&
 				((destinoY - 1 >= 0 &&
-				board [destinoX, destinoY - 1].fichaEquipo () != turno && 
-				board [destinoX, destinoY - 1].esArquero (true) &&
-				board [destinoX, destinoY - 1].area) 
+				board[destinoX, destinoY - 1].fichaEquipo() != turno && 
+				board[destinoX, destinoY - 1].esArquero(true) &&
+				board[destinoX, destinoY - 1].area) 
                 ||
-				(board [destinoX, destinoY].fichaEquipo () != turno && 
-				(board [destinoX, destinoY].esArquero (true) || 
-				(board [destinoX, destinoY].areaChica &&
-				board [destinoX, destinoY].ficha != TipoFicha.Vacio)))
+				(board[destinoX, destinoY].fichaEquipo() != turno && 
+				(board[destinoX, destinoY].esArquero(true) || 
+				(board[destinoX, destinoY].areaChica &&
+				board[destinoX, destinoY].ficha != TipoFicha.Vacio)))
                 ||
 				(destinoY + 1 < ancho &&
-				board [destinoX, destinoY + 1].fichaEquipo () != turno && 
-				board [destinoX, destinoY + 1].esArquero (true) &&
-				board [destinoX, destinoY + 1].area)))
+				board[destinoX, destinoY + 1].fichaEquipo() != turno && 
+				board[destinoX, destinoY + 1].esArquero(true) &&
+				board[destinoX, destinoY + 1].area)))
 			{
 				mensaje = "La pelota no puede pasar jugadores en el area";
-				mensajeError (mensaje);
+				mensajeError(mensaje);
 				return false;
 			}
-			else
-			if (board [destinoX, destinoY].ficha != TipoFicha.Vacio &&
+			else if (board[destinoX, destinoY].ficha != TipoFicha.Vacio &&
 				ficha.ficha != TipoFicha.Pelota && 
 				ficha.ficha != TipoFicha.Vacio && 
-				board [destinoX, destinoY].ficha != TipoFicha.Vacio)
+				board[destinoX, destinoY].ficha != TipoFicha.Vacio)
 			{
 				mensaje = "No se puede atravesar a otros jugadores";
-				mensajeError (mensaje);
+				mensajeError(mensaje);
 				return false;
 			}
 		}
@@ -737,7 +731,7 @@ public class PlayerController : MonoBehaviour
 
 	void mensajeError (string mensaje)
 	{
-		Debug.Log (mensaje);
+		Debug.Log(mensaje);
 	}
 
 	void imprimirInfluencia ()
@@ -747,11 +741,11 @@ public class PlayerController : MonoBehaviour
 		{
 			for (int j = 0; j < ancho; j++)
 			{
-				influencia += System.Math.Abs (board [i, j].influenciaRojo - board [i, j].influenciaBlanco).ToString ();
+				influencia += System.Math.Abs(board[i, j].influenciaRojo - board[i, j].influenciaBlanco).ToString();
 			}
 			influencia += "\n";
 		}
-		Debug.Log (influencia);
+		Debug.Log(influencia);
 	}
 
 	// Encuentra la ficha adyacente a la pelota. En caso de haber mas de un jugador retorna null.
@@ -766,11 +760,11 @@ public class PlayerController : MonoBehaviour
 				if ((i != x || j != y) &&
 					i > 0 && i < (alto - 1) &&
 					j >= 0 && j < ancho &&
-					board [i, j].fichaEquipo () == turno)
+					board[i, j].fichaEquipo() == turno)
 				{
 					if (ficha == null)
 					{
-						ficha = board [i, j];
+						ficha = board[i, j];
 					}
 					else
 					{
@@ -795,7 +789,7 @@ public class PlayerController : MonoBehaviour
 					j >= 0 && j < ancho &&
 					ficha.ficha == TipoFicha.Pelota)
 				{
-					return board [i, j];
+					return board[i, j];
 				}
 			}
 		}
@@ -812,7 +806,7 @@ public class PlayerController : MonoBehaviour
 				if (i > 0 && i < (alto - 1) &&
 					j >= 0 && j < ancho)
 				{
-					board [i, j].modificarInfluencia (ficha, negativo);
+					board[i, j].modificarInfluencia(ficha, negativo);
 				}
 			}
 		}
@@ -824,8 +818,8 @@ public class PlayerController : MonoBehaviour
 		// En caso de que la ficha se encuentre en un limite de la matriz
 		if (x == 0)
 		{
-			if (board [x, y - 1].ficha == TipoFicha.Pelota || board [x, y + 1].ficha == TipoFicha.Pelota || board [x + 1, y + 1].ficha == TipoFicha.Pelota ||
-				board [x + 1, y].ficha == TipoFicha.Pelota || board [x + 1, y - 1].ficha == TipoFicha.Pelota 
+			if (board[x, y - 1].ficha == TipoFicha.Pelota || board[x, y + 1].ficha == TipoFicha.Pelota || board[x + 1, y + 1].ficha == TipoFicha.Pelota ||
+				board[x + 1, y].ficha == TipoFicha.Pelota || board[x + 1, y - 1].ficha == TipoFicha.Pelota 
                 )
 			{
 				return true;
@@ -833,8 +827,8 @@ public class PlayerController : MonoBehaviour
 		}
 		if (x == 14)
 		{
-			if (board [x, y - 1].ficha == TipoFicha.Pelota || board [x - 1, y - 1].ficha == TipoFicha.Pelota || board [x - 1, y].ficha == TipoFicha.Pelota || 
-				board [x - 1, y + 1].ficha == TipoFicha.Pelota || board [x, y + 1].ficha == TipoFicha.Pelota 
+			if (board[x, y - 1].ficha == TipoFicha.Pelota || board[x - 1, y - 1].ficha == TipoFicha.Pelota || board[x - 1, y].ficha == TipoFicha.Pelota || 
+				board[x - 1, y + 1].ficha == TipoFicha.Pelota || board[x, y + 1].ficha == TipoFicha.Pelota 
                 )
 			{
 				return true;
@@ -842,8 +836,8 @@ public class PlayerController : MonoBehaviour
 		}
 		if (y == 0)
 		{
-			if (board [x - 1, y].ficha == TipoFicha.Pelota || board [x - 1, y + 1].ficha == TipoFicha.Pelota || board [x, y + 1].ficha == TipoFicha.Pelota || 
-				board [x + 1, y + 1].ficha == TipoFicha.Pelota || board [x + 1, y].ficha == TipoFicha.Pelota 
+			if (board[x - 1, y].ficha == TipoFicha.Pelota || board[x - 1, y + 1].ficha == TipoFicha.Pelota || board[x, y + 1].ficha == TipoFicha.Pelota || 
+				board[x + 1, y + 1].ficha == TipoFicha.Pelota || board[x + 1, y].ficha == TipoFicha.Pelota 
                 )
 			{
 				return true;
@@ -851,8 +845,8 @@ public class PlayerController : MonoBehaviour
 		}
 		if (y == 10)
 		{
-			if (board [x, y - 1].ficha == TipoFicha.Pelota || board [x - 1, y - 1].ficha == TipoFicha.Pelota || board [x - 1, y].ficha == TipoFicha.Pelota || 
-				board [x + 1, y].ficha == TipoFicha.Pelota || board [x + 1, y - 1].ficha == TipoFicha.Pelota 
+			if (board[x, y - 1].ficha == TipoFicha.Pelota || board[x - 1, y - 1].ficha == TipoFicha.Pelota || board[x - 1, y].ficha == TipoFicha.Pelota || 
+				board[x + 1, y].ficha == TipoFicha.Pelota || board[x + 1, y - 1].ficha == TipoFicha.Pelota 
                 )
 			{
 				return true;
@@ -861,9 +855,9 @@ public class PlayerController : MonoBehaviour
 		// En caso de que la ficha no se encuentre en un limite de la matriz
 		if (x != 0 && x != 14 && y != 0 && y != 10)
 		{
-			if (board [x, y - 1].ficha == TipoFicha.Pelota || board [x - 1, y - 1].ficha == TipoFicha.Pelota || board [x - 1, y].ficha == TipoFicha.Pelota || 
-				board [x - 1, y + 1].ficha == TipoFicha.Pelota || board [x, y + 1].ficha == TipoFicha.Pelota || board [x + 1, y + 1].ficha == TipoFicha.Pelota ||
-				board [x + 1, y].ficha == TipoFicha.Pelota || board [x + 1, y - 1].ficha == TipoFicha.Pelota 
+			if (board[x, y - 1].ficha == TipoFicha.Pelota || board[x - 1, y - 1].ficha == TipoFicha.Pelota || board[x - 1, y].ficha == TipoFicha.Pelota || 
+				board[x - 1, y + 1].ficha == TipoFicha.Pelota || board[x, y + 1].ficha == TipoFicha.Pelota || board[x + 1, y + 1].ficha == TipoFicha.Pelota ||
+				board[x + 1, y].ficha == TipoFicha.Pelota || board[x + 1, y - 1].ficha == TipoFicha.Pelota 
                 )
 			{
 				return true;
@@ -874,15 +868,15 @@ public class PlayerController : MonoBehaviour
 
 	void setFicha (int x, int y, TipoFicha ficha)
 	{
-		TipoFicha fichaPrevia = board [x, y].ficha;
-		board [x, y].ficha = ficha;
+		TipoFicha fichaPrevia = board[x, y].ficha;
+		board[x, y].ficha = ficha;
 		if (ficha == TipoFicha.Vacio)
 		{
-			modificarInfluencia (x, y, fichaPrevia, true);
+			modificarInfluencia(x, y, fichaPrevia, true);
 		}
 		else
 		{
-			modificarInfluencia (x, y, ficha, false);
+			modificarInfluencia(x, y, ficha, false);
 		}
 	}
 
@@ -890,8 +884,8 @@ public class PlayerController : MonoBehaviour
 	[RPC]
 	void setMatrix (int fichaX, int fichaY, int destinoX, int destinoY)
 	{
-		setFicha (destinoX, destinoY, board [fichaX, fichaY].ficha);
-		setFicha (fichaX, fichaY, TipoFicha.Vacio);
+		setFicha(destinoX, destinoY, board[fichaX, fichaY].ficha);
+		setFicha(fichaX, fichaY, TipoFicha.Vacio);
 	}
 
 	// Mueve la pelota en el servidor y en el cliente
@@ -900,17 +894,17 @@ public class PlayerController : MonoBehaviour
 	[RPC]
 	void moveBallOnServerAndClient (int destX, int destY, Vector3 pos, int origX, int origY)
 	{
-		GameObject.FindWithTag ("BALL").GetComponent<MatrixAttributes> ().x = destX; 
-		GameObject.FindWithTag ("BALL").GetComponent<MatrixAttributes> ().y = destY;
+		GameObject.FindWithTag("BALL").GetComponent<MatrixAttributes>().x = destX; 
+		GameObject.FindWithTag("BALL").GetComponent<MatrixAttributes>().y = destY;
 		// Muevo la pelota
-		GameObject.FindWithTag ("BALL").transform.position = pos;
-		GameObject.FindWithTag ("BALL").GetComponent<Renderer> ().material.color = Color.yellow;
+		GameObject.FindWithTag("BALL").transform.position = pos;
+		GameObject.FindWithTag("BALL").GetComponent<Renderer>().material.color = Color.yellow;
 		// Actualizo la matriz (hardcoded porque no andaba llamando a setMatrix)
 		// No anda llamando a setMatrix porque esta funcion ya se ejecuta en el servidor
 		selected = null;
 		ballSelected = false;
-		board [destX, destY].ficha = TipoFicha.Pelota;
-		board [origX, origY].ficha = TipoFicha.Vacio;   
+		board[destX, destY].ficha = TipoFicha.Pelota;
+		board[origX, origY].ficha = TipoFicha.Vacio;   
 	}
 
 	// Actualiza el marcador en el cliente y servidor
@@ -932,16 +926,16 @@ public class PlayerController : MonoBehaviour
 	{
 		for (int j=3; j<=7; j++)
 		{
-			if (board [0, j].ficha == TipoFicha.Pelota)
+			if (board[0, j].ficha == TipoFicha.Pelota)
 			{
 				// Aumento el marcador del jugador 1
-				GetComponent<NetworkView> ().RPC ("refreshScore", RPCMode.All, 1);		
+				GetComponent<NetworkView>().RPC("refreshScore", RPCMode.All, 1);		
 				return true;
 			}
-			if (board [14, j].ficha == TipoFicha.Pelota)
+			if (board[14, j].ficha == TipoFicha.Pelota)
 			{
 				// Aumento el marcador del jugador 2
-				GetComponent<NetworkView> ().RPC ("refreshScore", RPCMode.All, 2);
+				GetComponent<NetworkView>().RPC("refreshScore", RPCMode.All, 2);
 				return true;
 			}
 		}
@@ -953,36 +947,36 @@ public class PlayerController : MonoBehaviour
 	void restartPieces ()
 	{
 		// Inicializo la matriz
-		initializeMatrix ();
+		initializeMatrix();
 		
 		// Muevo las fichas
-		restartPiece ("BALL", 7, 5, "75");
+		restartPiece("BALL", 7, 5, "75");
 		switch (MenuController.level)
 		{
 			case 1:
-				restartPiece ("P1F1", 10, 5, "105");	
+				restartPiece("P1F1", 10, 5, "105");	
 				
-				restartPiece ("P2F1", 4, 5, "45");
+				restartPiece("P2F1", 4, 5, "45");
 				break;
 			case 2:
-				restartPiece ("P1F1", 10, 5, "105");
-				restartPiece ("P1F2", 12, 5, "125");
+				restartPiece("P1F1", 10, 5, "105");
+				restartPiece("P1F2", 12, 5, "125");
 				
-				restartPiece ("P2F1", 4, 5, "45");
-				restartPiece ("P2F2", 2, 5, "25");
+				restartPiece("P2F1", 4, 5, "45");
+				restartPiece("P2F2", 2, 5, "25");
 				break;
 			case 3:
-				restartPiece ("P1F1", 8, 2, "82");
-				restartPiece ("P1F2", 8, 8, "88");
-				restartPiece ("P1F3", 10, 3, "103");
-				restartPiece ("P1F4", 10, 7, "107");
-				restartPiece ("P1F5", 12, 5, "125");
+				restartPiece("P1F1", 8, 2, "82");
+				restartPiece("P1F2", 8, 8, "88");
+				restartPiece("P1F3", 10, 3, "103");
+				restartPiece("P1F4", 10, 7, "107");
+				restartPiece("P1F5", 12, 5, "125");
 				
-				restartPiece ("P2F1", 6, 2, "62");
-				restartPiece ("P2F2", 6, 8, "68");
-				restartPiece ("P2F3", 4, 3, "43");
-				restartPiece ("P2F4", 4, 7, "47");
-				restartPiece ("P2F5", 2, 5, "25");
+				restartPiece("P2F1", 6, 2, "62");
+				restartPiece("P2F2", 6, 8, "68");
+				restartPiece("P2F3", 4, 3, "43");
+				restartPiece("P2F4", 4, 7, "47");
+				restartPiece("P2F5", 2, 5, "25");
 				break;
 		}
 	}
@@ -990,46 +984,52 @@ public class PlayerController : MonoBehaviour
 	// Mueve una pieza a su posicion inicial
 	void restartPiece (string tag, int x, int y, string destiny)
 	{
-		GameObject.FindWithTag (tag).GetComponent<MatrixAttributes> ().x = x; 
-		GameObject.FindWithTag (tag).GetComponent<MatrixAttributes> ().y = y;
-		GameObject.FindWithTag (tag).transform.position = GameObject.Find (destiny).transform.position;
+		GameObject.FindWithTag(tag).GetComponent<MatrixAttributes>().x = x; 
+		GameObject.FindWithTag(tag).GetComponent<MatrixAttributes>().y = y;
+		GameObject.FindWithTag(tag).transform.position = GameObject.Find(destiny).transform.position;
 	}
 	
 	// Termina el juego en caso de que hayan entrado dos goles, reinicia las fichas en caso de un gol
 	void evaluate ()
 	{
-		if (isGoal ())
+		if (isGoal())
 		{
 			if (marcador1 + marcador2 == 2)
 			{
-				GetComponent<NetworkView> ().RPC ("setEnd", RPCMode.All, true);
+				GetComponent<NetworkView>().RPC("setEnd", RPCMode.All, true);
 			}
 			else
 			{
-				GetComponent<NetworkView> ().RPC ("restartPieces", RPCMode.All);
+				GetComponent<NetworkView>().RPC("restartPieces", RPCMode.All);
 				restart = true;
 			}
 			
 		}
 	}
-	
+
+	[RPC]
+	void setEstado (EstadoJuego estado)
+	{
+		this.estado = estado;
+	}
+
 	[RPC]
 	void setEnd (bool value)
 	{
 		end = value;
 	}
 
-	/*
-    // Para manejo de turnos
-    [RPC]
-    void cambiarTurno ()
-    {
-        if (turn == 1) {
-            turn = 2;
-        } else {
-            turn = 1;
-        }
-    }
-    */
-
+	// Para manejo de turnos
+	[RPC]
+	void cambiarTurno ()
+	{
+		if (turno == Equipo.Blanco)
+		{
+			turno = Equipo.Rojo;
+		}
+		else if (turno == Equipo.Rojo)
+		{
+			turno = Equipo.Blanco;
+		}
+	}
 }

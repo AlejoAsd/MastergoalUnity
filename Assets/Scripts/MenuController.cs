@@ -47,7 +47,7 @@ public class MenuController : MonoBehaviour {
 	//Inicializar servidor
 	private void StartServer()
 	{
-		Network.InitializeServer(2, 25000, !Network.HavePublicAddress());
+		Network.InitializeServer(1, 25000, !Network.HavePublicAddress());
 		MasterServer.RegisterHost(typeName, gameName);
 	}
 	
