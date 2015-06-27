@@ -2,7 +2,7 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\PlayerController.cs">
     <Files>
-      <File FileName="Assets\Scripts\PlayerController.cs" Line="110" Column="88" />
+      <File FileName="Assets\Scripts\PlayerController.cs" Line="626" Column="18" />
     </Files>
     <Pads>
       <Pad Id="MonoDevelop.Debugger.WatchPad">
@@ -10,6 +10,11 @@
           <Value>ficha.ficha</Value>
           <Value>destino.area</Value>
           <Value>destino.equipo == turno</Value>
+          <Value>i</Value>
+          <Value>j</Value>
+          <Value>x</Value>
+          <Value>y</Value>
+          <Value>board[x,y].ficha</Value>
         </State>
       </Pad>
     </Pads>

@@ -525,7 +525,8 @@ public class PlayerController : MonoBehaviour
             {
                 if (destinoY + i >= 0 && destinoY + i < ancho &&
                     board[destinoX, destinoY + i] != ficha &&
-                    board[destinoX, destinoY + i].ficha != TipoFicha.Vacio)
+                    board[destinoX, destinoY + i].ficha != TipoFicha.Vacio &&
+                    board[destinoX, destinoY + i].ficha != TipoFicha.Pelota)
                 {
                     if (ficha.esArquero(false))
                     {
@@ -605,6 +606,7 @@ public class PlayerController : MonoBehaviour
         
         destinoX = ficha.x;
         destinoY = ficha.y;
+        Debug.Log("Wat");
         
         int cantidadMovimientos = deltaDestinoY > 0 ? deltaDestinoX : deltaDestinoY;
         for (int i = 1; i < cantidadMovimientos; i++)

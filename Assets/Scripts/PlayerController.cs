@@ -525,7 +525,8 @@ public class PlayerController : MonoBehaviour
             {
                 if (destinoY + i >= 0 && destinoY + i < ancho &&
                     board[destinoX, destinoY + i] != ficha &&
-                    board[destinoX, destinoY + i].ficha != TipoFicha.Vacio)
+                    board[destinoX, destinoY + i].ficha != TipoFicha.Vacio &&
+                    board[destinoX, destinoY + i].ficha != TipoFicha.Pelota)
                 {
                     if (ficha.esArquero(false))
                     {
@@ -605,36 +606,36 @@ public class PlayerController : MonoBehaviour
         
         destinoX = ficha.x;
         destinoY = ficha.y;
+        Debug.Log("Wat");
         
         int cantidadMovimientos = deltaDestinoY > 0 ? deltaDestinoX : deltaDestinoY;
         for (int i = 1; i < cantidadMovimientos; i++)
         {
             destinoX += direccionDestinoX;
             destinoY += direccionDestinoY;
-            
-            if (board[destinoX, destinoY].ficha != TipoFicha.Vacio)
+
+            // En caso de ser la pelota debe saltar fichas excepto si es un arquero en el area
+            if (ficha.ficha == TipoFicha.Pelota &&
+                ((destinoY - 1 >= 0 &&
+                board[destinoX, destinoY - 1].fichaEquipo() != turno && 
+                board[destinoX, destinoY - 1].esArquero(true) &&
+                board[destinoX, destinoY - 1].area) 
+                ||
+                (board[destinoX, destinoY].fichaEquipo() != turno && 
+                (board[destinoX, destinoY].esArquero(true) || 
+                 board[destinoX, destinoY].areaChica))
+                ||
+                (destinoY + 1 < ancho &&
+                board[destinoX, destinoY + 1].fichaEquipo() != turno && 
+                board[destinoX, destinoY + 1].esArquero(true) &&
+                board[destinoX, destinoY + 1].area)))
             {
-                // En caso de ser la pelota debe saltar fichas excepto si es un arquero en el area
-                if (ficha.ficha == TipoFicha.Pelota &&
-                    ((destinoY - 1 >= 0 &&
-                    board[destinoX, destinoY - 1].fichaEquipo() != turno && 
-                    board[destinoX, destinoY - 1].esArquero(true) &&
-                    board[destinoX, destinoY - 1].area) 
-                    ||
-                    (board[destinoX, destinoY].fichaEquipo() != turno && 
-                    (board[destinoX, destinoY].esArquero(true) || 
-                      board[destinoX, destinoY].areaChica))
-                    ||
-                    (destinoY + 1 < ancho &&
-                    board[destinoX, destinoY + 1].fichaEquipo() != turno && 
-                    board[destinoX, destinoY + 1].esArquero(true) &&
-                    board[destinoX, destinoY + 1].area)))
-                {
-                    mensaje = "La pelota no puede pasar jugadores en el area";
-                    mensajeError(mensaje);
-                    return false;
-                }
-                else if (ficha.ficha != TipoFicha.Pelota && 
+                mensaje = "La pelota no puede pasar jugadores en el area";
+                mensajeError(mensaje);
+                return false;
+            }
+            else if (board[destinoX, destinoY].ficha != TipoFicha.Vacio &&
+                     ficha.ficha != TipoFicha.Pelota && 
                     ficha.ficha != TipoFicha.Vacio && 
                     board[destinoX, destinoY].ficha != TipoFicha.Vacio)
                 {
@@ -642,7 +643,6 @@ public class PlayerController : MonoBehaviour
                     mensajeError(mensaje);
                     return false;
                 }
-            }
         }
 
         return true;
