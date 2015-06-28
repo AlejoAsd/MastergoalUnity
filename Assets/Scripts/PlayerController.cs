@@ -286,8 +286,6 @@ public class PlayerController : MonoBehaviour
 		{
 			setEstado(EstadoJuego.Juego);
 		}*/
-
-		Debug.Log (turno);
 	}
 
 	void OnGUI()
