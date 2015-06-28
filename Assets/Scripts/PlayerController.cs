@@ -216,14 +216,14 @@ public class PlayerController : MonoBehaviour
 	// Marcadores del juego
 	public static int marcador1, marcador2;
 
-	// Indica si hay que reiniciar el tablero y fichas luego de un gol
-	public static bool restart = false;
+	// Indica el fin del juego
 	public static bool end = false;
     
 	void Start()
 	{
 		marcador1 = 0;
 		marcador2 = 0;
+		turno = Equipo.Blanco;
 		initializeMatrix();
 	}
 
@@ -286,6 +286,8 @@ public class PlayerController : MonoBehaviour
 		{
 			setEstado(EstadoJuego.Juego);
 		}*/
+
+		Debug.Log (turno);
 	}
 
 	void OnGUI()
@@ -343,10 +345,9 @@ public class PlayerController : MonoBehaviour
 				{
 					// Evaluar que haya terminado el juego si la pelota es una ficha
 					bool evaluar = (selected == ID_Pelota);
-					if (restart == false)
-					{
-						moverFicha(hit);
-					}
+
+					moverFicha(hit);
+					
 					if (evaluar)
 					{
 						evaluarFin();
@@ -399,10 +400,15 @@ public class PlayerController : MonoBehaviour
 			// Actualizar los valores de la matriz
 			GetComponent<NetworkView>().RPC("setMatrix", RPCMode.All, fichaX, fichaY, destinoX, destinoY);
 
-			// Mover la ficha
-			GameObject.FindWithTag(selected).GetComponent<MatrixAttributes>().x = destinoX; 
-			GameObject.FindWithTag(selected).GetComponent<MatrixAttributes>().y = destinoY;
-			GameObject.FindWithTag(selected).transform.position = hit.collider.transform.position;
+			if (selected == ID_Pelota){
+				GetComponent<NetworkView>().RPC("moverPelotaEnServidorYCliente", RPCMode.All, destinoX, destinoY, hit.collider.transform.position);
+			}
+			else{
+				// Mover la ficha
+				GameObject.FindWithTag(selected).GetComponent<MatrixAttributes>().x = destinoX; 
+				GameObject.FindWithTag(selected).GetComponent<MatrixAttributes>().y = destinoY;
+				GameObject.FindWithTag(selected).transform.position = hit.collider.transform.position;
+			}
 
 			// Deseleccionar la ficha
 			selectDeselectPiece(selected);
@@ -434,9 +440,16 @@ public class PlayerController : MonoBehaviour
                 selected = null;
 
                 Debug.Log("Juego");
-				//GetComponent<NetworkView>().RPC("cambiarTurno", RPCMode.All);
+				GetComponent<NetworkView>().RPC("cambiarTurno", RPCMode.All);
 			}
 		}
+	}
+
+	[RPC]
+	void moverPelotaEnServidorYCliente(int destX, int destY, Vector3 pos){
+		GameObject.FindWithTag(ID_Pelota).GetComponent<MatrixAttributes>().x = destX; 
+		GameObject.FindWithTag(ID_Pelota).GetComponent<MatrixAttributes>().y = destY;
+		GameObject.FindWithTag(ID_Pelota).transform.position = pos;
 	}
 
 	// Verifica si el movimiento a realizar es valido
@@ -888,7 +901,6 @@ public class PlayerController : MonoBehaviour
 			else
 			{
 				GetComponent<NetworkView>().RPC("restartPieces", RPCMode.All);
-				restart = true;
 			}
 			
 		}

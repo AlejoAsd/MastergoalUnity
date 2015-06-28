@@ -84,12 +84,14 @@ public class MenuController : MonoBehaviour {
 
 
 	void OnDisconnectedFromServer(){
+		destruirFichas();
 		screenValue = Constants.MAIN;
 	}
 
 	void OnPlayerDisconnected(){
 		Network.Disconnect ();
 		MasterServer.UnregisterHost ();
+		destruirFichas();
 		screenValue = Constants.MAIN;
 	}
 
@@ -277,14 +279,37 @@ public class MenuController : MonoBehaviour {
 
 		/**************************** Pantalla de Juego ****************************/
 		if (screenValue == Constants.GAME) {
-
 			// Evento a llamar al apretar el boton de atras de android
 			if (Input.GetKeyUp(KeyCode.Escape)) { 
 				Network.Disconnect();
 				MasterServer.UnregisterHost();
-				screenValue = Constants.MAIN; 
-			}	
+				screenValue = Constants.MAIN;
+				destruirFichas();
+			}
 		}
 
 	}
+
+	// Destruye las fichas al salir del juego
+	void destruirFichas(){
+		switch (level) {
+		case 2:
+			Destroy(GameObject.FindWithTag("P1F2"));
+			Destroy(GameObject.FindWithTag("P2F2"));
+			break;
+		case 3:
+			Destroy(GameObject.FindWithTag("P1F2"));
+			Destroy(GameObject.FindWithTag("P1F3"));
+			Destroy(GameObject.FindWithTag("P1F4"));
+			Destroy(GameObject.FindWithTag("P1F5"));
+
+			Destroy(GameObject.FindWithTag("P2F2"));
+			Destroy(GameObject.FindWithTag("P2F3"));
+			Destroy(GameObject.FindWithTag("P2F4"));
+			Destroy(GameObject.FindWithTag("P2F5"));
+			break;
+		}
+		Destroy(GameObject.FindWithTag("BALL"));
+	}
+
 }
