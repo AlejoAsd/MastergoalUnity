@@ -437,6 +437,10 @@ public class PlayerController : MonoBehaviour
 	public const string ID_P2F4 = "P2F4";
 	public const string ID_P2F5 = "P2F5";
 	private const int infinito = 1000000000;
+	private const float posx = 0.0f;
+	private const float posy = 0.6f;
+	private const float posz = 0.0f;
+
 
 	// Dimensiones del tablero
 	static int ancho = 11;
@@ -471,6 +475,7 @@ public class PlayerController : MonoBehaviour
 		marcador1 = 0;
 		marcador2 = 0;
 		jugadaEspecial = false;
+		pases = 0;
 		turno = Equipo.Blanco;
 		initializeMatrix();
 	}
@@ -703,6 +708,8 @@ public class PlayerController : MonoBehaviour
 				if (especial && !jugadaEspecial)
 				{
 					jugadaEspecial = true;
+					pases -= 1;
+					// TODO Hacer que vuelva a jugar la pc
 				}
 				else
 				{
@@ -1417,6 +1424,7 @@ public class PlayerController : MonoBehaviour
 	void cambiarTurno()
 	{
 		jugadaEspecial = false;
+		pases = 0;
 		if (turno == Equipo.Blanco)
 		{
 			turno = Equipo.Rojo;
