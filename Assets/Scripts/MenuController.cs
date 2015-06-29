@@ -102,6 +102,7 @@ public class MenuController : MonoBehaviour
 	{
 		Debug.Log("Joined Server");
 		ServerSpawnPlayer2();
+		GameObject.FindWithTag("P2F1").AddComponent<PlayerController>();
 	}
 
 	void OnDisconnectedFromServer()
@@ -300,10 +301,10 @@ public class MenuController : MonoBehaviour
 	// Genera una ficha del jugador 2
 	void ServerSpawnPlayer2Piece(int x, int y, string pieceName, int pieceNumber)
 	{
-		matrixAttributes = playerPrefab2[pieceNumber].GetComponent<MatrixAttributes> ();
+		matrixAttributes = playerPrefab2[pieceNumber].GetComponent<MatrixAttributes>();
 		matrixAttributes.x = x;
 		matrixAttributes.y = y;
-		spawningPosition = GameObject.Find (pieceName).transform.position;
+		spawningPosition = GameObject.Find(pieceName).transform.position;
 		Network.Instantiate(playerPrefab2[pieceNumber], spawningPosition, playerPrefab2[pieceNumber].transform.rotation, 0);
 	}
 	#endregion Spawns Multiplayer
@@ -313,7 +314,6 @@ public class MenuController : MonoBehaviour
 	void generateTitle()
 	{
 		GUI.Label(new Rect(0, 10, Screen.width, 100), "MASTERGOAL", customStyle);
-		GUI.Label(new Rect(0, 110, Screen.width, 100), "MULTIJUGADOR", customStyle);
 	}
 
 	void OnGUI()
@@ -494,6 +494,7 @@ public class MenuController : MonoBehaviour
 			GUI.Label(new Rect(100, 400, 200, 20), ("Blanco : " + marcadores.puntajeBlanco), marcadorStyle);
 			GUI.Label(new Rect(100, 450, 200, 20), ("Rojo : " + marcadores.puntajeRojo), marcadorStyle);
 
+
 			// Evento a llamar al apretar el boton de atras de android
 			if (Input.GetKeyUp(KeyCode.Escape) && screenValue == Constants.GAMEMP)
 			{ 
@@ -512,8 +513,10 @@ public class MenuController : MonoBehaviour
 	}
 
 	// Destruye las fichas al salir del juego
-	void destruirFichas(){
-		switch (level) {
+	void destruirFichas()
+	{
+		switch (level)
+		{
 			case 1:
 				Destroy(GameObject.FindWithTag("P1F1"));
 				Destroy(GameObject.FindWithTag("P2F1"));

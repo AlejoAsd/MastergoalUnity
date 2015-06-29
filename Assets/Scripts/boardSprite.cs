@@ -10,8 +10,8 @@ public class boardSprite : MonoBehaviour {
 	void Start () {
 		// Insertar el sprite de las lineas de la cancha
 		// crea el objeto
-		GameObject lineasSprite = new GameObject();
-		lineas_sprite.name = "Lineas";
+		GameObject lineasSprite = new GameObject("Lineas");
+		lineas_sprite.name = "LineasSprite";
 		// Agrega el componente "SpriteRenderer" al gameobject
 		lineasSprite.AddComponent<SpriteRenderer>();
 		// Asigna el sprite

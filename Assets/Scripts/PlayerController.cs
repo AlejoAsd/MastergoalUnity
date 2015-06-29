@@ -224,7 +224,7 @@ public class PlayerController : MonoBehaviour
 		marcador1 = 0;
 		marcador2 = 0;
 		turno = Equipo.Blanco;
-		//initializeMatrix();
+		initializeMatrix();
 	}
 
 	// Inicializa la matriz con los valores segun las posiciones de las fichas
@@ -271,12 +271,12 @@ public class PlayerController : MonoBehaviour
 
 	void Update()
 	{   
-		if (GetComponent<NetworkView>().isMine)
+		if (MenuController.screenValue == Constants.GAMESP || (MenuController.screenValue == Constants.GAMEMP && GetComponent<NetworkView>().isMine))
 		{
 			InputMovement();
 		}
 
-		if (Network.peerType == NetworkPeerType.Disconnected)
+		if (MenuController.screenValue == Constants.GAMEMP && Network.peerType == NetworkPeerType.Disconnected)
 		{
 			Network.Destroy(GetComponent<NetworkView>().viewID);
 		}
@@ -323,12 +323,16 @@ public class PlayerController : MonoBehaviour
 					for (int i = 1; i <= 5; i++)
 					{
 						string id;
-						if (Network.isServer && hit.collider.tag == (id = "P1F" + i))
+						if ((MenuController.screenValue == Constants.GAMESP || 
+						    (MenuController.screenValue == Constants.GAMEMP && Network.isServer)) && 
+						    hit.collider.tag == (id = "P1F" + i))
 						{
 							selectDeselectPiece(id);
 							return;
 						}
-						else if (Network.isClient && hit.collider.tag == (id = "P2F" + i))
+						else if ((MenuController.screenValue == Constants.GAMESP || 
+						         (MenuController.screenValue == Constants.GAMEMP && Network.isClient)) && 
+						         hit.collider.tag == (id = "P2F" + i))
 						{
 							selectDeselectPiece(id);
 							return;
@@ -369,11 +373,13 @@ public class PlayerController : MonoBehaviour
 			{
 				GameObject.FindWithTag(tag).GetComponent<Renderer>().material.color = Color.yellow;
 			}
-			else if (Network.isServer)
+			else if ((MenuController.screenValue == Constants.GAMEMP && Network.isServer) ||
+			         (MenuController.screenValue == Constants.GAMESP && turno == Equipo.Blanco))
 			{
 				GameObject.FindWithTag(tag).GetComponent<Renderer>().material.color = Color.white;
 			}
-			else if (Network.isClient)
+			else if ((MenuController.screenValue == Constants.GAMEMP && Network.isClient) ||
+			         (MenuController.screenValue == Constants.GAMESP && turno == Equipo.Rojo))
 			{
 				GameObject.FindWithTag(tag).GetComponent<Renderer>().material.color = Color.red;
 			}
@@ -396,12 +402,28 @@ public class PlayerController : MonoBehaviour
 		if (validarMovimiento(fichaX, fichaY, destinoX, destinoY))
 		{
 			// Actualizar los valores de la matriz
-			GetComponent<NetworkView>().RPC("setMatrix", RPCMode.All, fichaX, fichaY, destinoX, destinoY);
-
-			if (selected == ID_Pelota){
-				GetComponent<NetworkView>().RPC("moverPelotaEnServidorYCliente", RPCMode.All, destinoX, destinoY, hit.collider.transform.position);
+			if (MenuController.screenValue == Constants.GAMEMP)
+			{
+				GetComponent<NetworkView>().RPC("setMatrix", RPCMode.All, fichaX, fichaY, destinoX, destinoY);
 			}
-			else{
+			else if (MenuController.screenValue == Constants.GAMESP)
+			{
+				setMatrix(fichaX, fichaY, destinoX, destinoY);
+			}
+
+			if (selected == ID_Pelota)
+			{
+				if (MenuController.screenValue == Constants.GAMEMP)
+				{
+					GetComponent<NetworkView>().RPC("moverPelotaEnServidorYCliente", RPCMode.All, destinoX, destinoY, hit.collider.transform.position);
+				}
+				else if (MenuController.screenValue == Constants.GAMESP)
+				{
+					moverPelotaEnServidorYCliente(destinoX, destinoY, hit.collider.transform.position);
+				}
+			}
+			else
+			{
 				// Mover la ficha
 				GameObject.FindWithTag(selected).GetComponent<MatrixAttributes>().x = destinoX; 
 				GameObject.FindWithTag(selected).GetComponent<MatrixAttributes>().y = destinoY;
@@ -427,20 +449,30 @@ public class PlayerController : MonoBehaviour
                 {
                     GameObject.FindWithTag(tag).GetComponent<Renderer>().material.color = Color.yellow;
                 }
-                else if (Network.isServer)
+                /*else if (turno == Equipo.Blanco)
                 {
                     GameObject.FindWithTag(tag).GetComponent<Renderer>().material.color = Color.white;
                 }
-                else if (Network.isClient)
+                else if (turno == Equipo.Rojo)
                 {
                     GameObject.FindWithTag(tag).GetComponent<Renderer>().material.color = Color.red;
-                }
+                }*/
                 selected = null;
 
-                Debug.Log("Juego");
-				GetComponent<NetworkView>().RPC("cambiarTurno", RPCMode.All);
+				if (MenuController.screenValue == Constants.GAMEMP)
+				{
+					GetComponent<NetworkView>().RPC("cambiarTurno", RPCMode.All);
+				}
+				else if (MenuController.screenValue == Constants.GAMESP)
+				{
+					cambiarTurno();
+				}
 			}
 		}
+		Debug.Log("Tablero");
+		imprimirTablero();
+		Debug.Log("Influencia");
+		imprimirInfluencia();
 	}
 
 	[RPC]
@@ -824,9 +856,6 @@ public class PlayerController : MonoBehaviour
 		marcadores.errorText = mensaje;
 		marcadores.ShowLabel = true;
 		marcadores.contadorErrorFloat = 4;
-		
-		
-		
 	}
 
 
@@ -838,13 +867,27 @@ public class PlayerController : MonoBehaviour
 			if (board[0, j].ficha == TipoFicha.Pelota)
 			{
 				// Aumento el marcador del jugador 1
-				GetComponent<NetworkView>().RPC("refreshScore", RPCMode.All, 1);		
+				if (MenuController.screenValue == Constants.GAMEMP)
+				{
+					GetComponent<NetworkView>().RPC("refreshScore", RPCMode.All, 1);
+				}
+				else if (MenuController.screenValue == Constants.GAMESP)
+				{
+					refreshScore(1);
+				}
 				return true;
 			}
 			if (board[14, j].ficha == TipoFicha.Pelota)
 			{
 				// Aumento el marcador del jugador 2
-				GetComponent<NetworkView>().RPC("refreshScore", RPCMode.All, 2);
+				if (MenuController.screenValue == Constants.GAMEMP)
+				{
+					GetComponent<NetworkView>().RPC("refreshScore", RPCMode.All, 2);
+				}
+				else if (MenuController.screenValue == Constants.GAMESP)
+				{
+					refreshScore(2);
+				}
 				return true;
 			}
 		}
@@ -905,11 +948,25 @@ public class PlayerController : MonoBehaviour
 		{
 			if (marcador1 + marcador2 == 2)
 			{
-				GetComponent<NetworkView>().RPC("setEnd", RPCMode.All, true);
+				if (MenuController.screenValue == Constants.GAMEMP)
+				{
+					GetComponent<NetworkView>().RPC("setEnd", RPCMode.All, true);
+				}
+				else if (MenuController.screenValue == Constants.GAMESP)
+				{
+					setEnd(true);
+				}
 			}
 			else
 			{
-				GetComponent<NetworkView>().RPC("restartPieces", RPCMode.All);
+				if (MenuController.screenValue == Constants.GAMEMP)
+				{
+					GetComponent<NetworkView>().RPC("restartPieces", RPCMode.All);
+				}
+				else if (MenuController.screenValue == Constants.GAMESP)
+				{
+					restartPieces();
+				}
 			}
 			
 		}
