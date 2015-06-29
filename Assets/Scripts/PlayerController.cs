@@ -448,6 +448,7 @@ public class PlayerController : MonoBehaviour
 
 	// Informacion sobre el turno
 	public static Equipo turno = Equipo.Blanco;
+	static bool jugadaEspecial = false;
 	static int contadorTurnos = 0;
 	static int pases = 0;
 	static int pasesMaximos = 4;
@@ -469,6 +470,7 @@ public class PlayerController : MonoBehaviour
 	{
 		marcador1 = 0;
 		marcador2 = 0;
+		jugadaEspecial = false;
 		turno = Equipo.Blanco;
 		initializeMatrix();
 	}
@@ -690,40 +692,31 @@ public class PlayerController : MonoBehaviour
 			{
 				estado = EstadoJuego.Pase;
 				selectDeselectPiece(ID_Pelota);
-                Debug.Log("Pase");
 			}
 			else
 			{
 				estado = EstadoJuego.Juego;
+				bool especial = board[destinoX, destinoY].ficha == TipoFicha.Pelota &&
+								board[destinoX, destinoY].especial && 
+								board[destinoX, destinoY].equipo != turno;
 
-                if (selected == ID_Pelota)
-                {
-                    GameObject.FindWithTag(tag).GetComponent<Renderer>().material.color = Color.yellow;
-                }
-                /*else if (turno == Equipo.Blanco)
-                {
-                    GameObject.FindWithTag(tag).GetComponent<Renderer>().material.color = Color.white;
-                }
-                else if (turno == Equipo.Rojo)
-                {
-                    GameObject.FindWithTag(tag).GetComponent<Renderer>().material.color = Color.red;
-                }*/
-                selected = null;
-
-				if (MenuController.screenValue == Constants.GAMEMP)
+				if (especial && !jugadaEspecial)
 				{
-					GetComponent<NetworkView>().RPC("cambiarTurno", RPCMode.All);
+					jugadaEspecial = true;
 				}
-				else if (MenuController.screenValue == Constants.GAMESP)
+				else
 				{
-					cambiarTurno();
+					if (MenuController.screenValue == Constants.GAMEMP)
+					{
+						GetComponent<NetworkView>().RPC("cambiarTurno", RPCMode.All);
+					}
+					else if (MenuController.screenValue == Constants.GAMESP)
+					{
+						cambiarTurno();
+					}
 				}
 			}
 		}
-		Debug.Log("Tablero");
-		imprimirTablero();
-		Debug.Log("Influencia");
-		imprimirInfluencia();
 	}
 
 	#region AI
@@ -1168,7 +1161,6 @@ public class PlayerController : MonoBehaviour
 			}
 			influencia += "\n";
 		}
-		Debug.Log(influencia);
 	}
 
 	void imprimirTablero()
@@ -1182,7 +1174,6 @@ public class PlayerController : MonoBehaviour
 			}
 			influencia += "\n";
 		}
-		Debug.Log(influencia);
 	}
 
 	// Encuentra la ficha adyacente a la pelota. En caso de haber mas de un jugador retorna null.
@@ -1425,6 +1416,7 @@ public class PlayerController : MonoBehaviour
 	[RPC]
 	void cambiarTurno()
 	{
+		jugadaEspecial = false;
 		if (turno == Equipo.Blanco)
 		{
 			turno = Equipo.Rojo;
