@@ -104,7 +104,7 @@ public class MenuController : MonoBehaviour
 		ServerSpawnPlayer2();
 	}
 
-	void OnDisconnectedFromServer()
+	public void OnDisconnectedFromServer()
 	{
 		destruirFichas();
 		screenValue = Constants.MAIN;
@@ -512,7 +512,7 @@ public class MenuController : MonoBehaviour
 	}
 
 	// Destruye las fichas al salir del juego
-	void destruirFichas()
+	public static void destruirFichas()
 	{
 		switch (level)
 		{

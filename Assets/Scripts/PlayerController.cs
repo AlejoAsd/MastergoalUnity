@@ -175,6 +175,12 @@ public class BoardCell
 			return Equipo.Ninguno;
 		}
 	}
+
+	// Distancia manhattan con respecto a otra ficha
+	public int distancia(BoardCell ficha)
+	{
+		return System.Math.Abs(x - ficha.x) + System.Math.Abs(y - ficha .y);
+	}
 }
 
 public class Jugada
@@ -196,6 +202,7 @@ public class Jugada
 public class Estado
 {
 	public BoardCell[,] board;
+	public Equipo equipo;
 	public int nivel;
 	public int cantidadFichas;
 	public int alto;
@@ -205,6 +212,8 @@ public class Estado
 	public BoardCell[] oponentes;
 	public BoardCell arqueroJugador;
 	public BoardCell arqueroOponente;
+
+	private const int infinito = 1000000000;
 	
 	private enum PesoAI
 	{
@@ -239,6 +248,7 @@ public class Estado
 		this.board = board;
 		this.alto = alto;
 		this.ancho = ancho;
+		this.equipo = equipo;
 		
 		// Indicar la cantidad de fichas en base al nivel
 		if (nivel == 1 || nivel == 2)
@@ -290,11 +300,11 @@ public class Estado
 	
 	public bool esGol()
 	{
-		return (pelota.x == 0 || pelota.x == (alto - 1)) && 
+ 		return (pelota.x == 0 || pelota.x == (alto - 1)) && 
 			(pelota.y >= 3 || pelota.y <= 7);
 	}
 	
-	public void mover(Equipo equipo, Jugada jugada, bool deshacer)
+	public void mover(Equipo turno, Jugada jugada, bool deshacer)
 	{
 		int fichaX, fichaY, destinoX, destinoY;
 		// Definir el sentido del movimiento
@@ -319,7 +329,7 @@ public class Estado
 		
 		// Actualizar la referencia
 		// Pelota
-		if (board[fichaX, fichaY].ficha == TipoFicha.Pelota)
+		if (board[destinoX, destinoY].ficha == TipoFicha.Pelota)
 		{
 			pelota = board[destinoX, destinoY];
 		}
@@ -328,13 +338,13 @@ public class Estado
 		{
 			for (int i = 0; i < cantidadFichas; i++)
 			{
-				if (equipo == Equipo.Blanco && 
+				if (equipo == turno && 
 				    jugadores[i].x == fichaX && 
 				    jugadores[i].y == fichaY)
 				{
 					jugadores[i] = board[destinoX, destinoY];
 				}
-				else if (equipo == Equipo.Rojo && 
+				else if (equipo == turno && 
 				         oponentes[i].x == fichaX && 
 				         oponentes[i].y == fichaY)
 				{
@@ -373,51 +383,31 @@ public class Estado
 		}
 	}
 	
-	public int valorar(Equipo equipo)
+	public int valorar()
 	{
-		/*Hashtable pesos = new Hashtable();
-		
-		if (nivel == 3)
+		int r;
+		if (pelota.x == 0 || pelota.x == alto - 1 )
 		{
-			nivel = 5;
+			r = infinito * (equipo == pelota.equipo ? -1 : 1);
+			return r;
 		}
-		
-		pesos[PesoAI.Ball_advance] = System.Math.Abs(alto / 2 - pelota.y) * (pelota.equipo == equipo ? 1 : -1);
-		
-		if ((pesos[PesoAI.Ball_advance] == 6.0 && 
-		     (pelota.x == 1 || 
-		 pelota.x == 2 || 
-		 pelota.x == 9 || 
-		 pelota.x == 10)) || 
-		    (pesos[PesoAI.Ball_advance] == 5.0 && 
-		 (pelota.x == 1 || 
-		 pelota.x == 10)))
+		else
 		{
-			pesos[PesoAI.Ball_advance]--;
+			r = 2 * (System.Math.Abs(alto / 2 - pelota.x) * (pelota.equipo == equipo ? -1 : 1));
 		}
-		
-		
-		List<BoardCell> distanciaJugador;
-		List<BoardCell> distanciaOponente;
-		List<BoardCell> ventajaJugador;
-		List<BoardCell> ventajaOponente;
-		for (int i = 0; i < nivel; i++)
+		// Intentar reducir la distancia del jugador a la pelota
+		int min = infinito;
+		int d = 0;
+		for (int i = 0; i < cantidadFichas; i++)
 		{
-			distanciaJugador.Add(jugadores[i].distancia(pelota));
-			distanciaOponente.Add(oponentes[i].distancia(pelota));
-			if (turno != equipo)
+			d = jugadores[i].distancia(pelota);
+			if (d < min)
 			{
-				ventajaJugador.Add(-(jugadores[0].x - 7));
-				ventajaOponente.Add(oponentes[0].x - 7);
+				min = d;
 			}
-			else
-			{
-				ventajaJugador.Add(jugadores[0].x - 7);
-				ventajaOponente.Add(-(oponentes[0].x - 7));
-			}
-		}*/
-		// HACK
-		return new System.Random().Next(0, 1000);
+		}
+		r -= d;
+		return r;
 	}
 }
 
@@ -436,11 +426,15 @@ public class PlayerController : MonoBehaviour
 	public const string ID_P2F3 = "P2F3";
 	public const string ID_P2F4 = "P2F4";
 	public const string ID_P2F5 = "P2F5";
+
+	// AI
 	private const int infinito = 1000000000;
+	private const int profundidad = 1;
+
+	// Posicionamiento de fichas
 	private const float posx = 0.0f;
 	private const float posy = 0.6f;
 	private const float posz = 0.0f;
-
 
 	// Dimensiones del tablero
 	static int ancho = 11;
@@ -477,6 +471,7 @@ public class PlayerController : MonoBehaviour
 		jugadaEspecial = false;
 		pases = 0;
 		turno = Equipo.Blanco;
+		contadorTurnos = 1;
 		initializeMatrix();
 	}
 
@@ -539,6 +534,11 @@ public class PlayerController : MonoBehaviour
 			Network.Destroy(GetComponent<NetworkView>().viewID);
 		}
 
+		if (Input.GetKeyUp(KeyCode.Return))
+		{
+			imprimirTablero();
+		}
+
 		/* HACK // No permitir jugar hasta que hayan dos jugadores
 		if (Network.isServer && Network.connections.Length == Network.maxConnections && estado == EstadoJuego.Iniciando)
 		{
@@ -558,11 +558,18 @@ public class PlayerController : MonoBehaviour
 				// luego de que el cliente haya cambiado el screenValue desconectar (atender que al desconectar tanto cliente como servidor van al main)
 				
 				// Mientras tanto si uno aprieta el boton los dos vuelven (cliente servidor)
-				GetComponent<NetworkView>().RPC("setEnd", RPCMode.All, false);
+				if (MenuController.screenValue == Constants.GAMEMP)
+				{
+					GetComponent<NetworkView>().RPC("setEnd", RPCMode.All, false);
+					Network.Disconnect();
+					MasterServer.UnregisterHost();
+				}
+				else if (MenuController.screenValue == Constants.GAMESP)
+				{
+					setEnd(false);
+					MenuController.destruirFichas();
+				}
 				MenuController.screenValue = Constants.MAIN; 
-				Network.Disconnect();
-				MasterServer.UnregisterHost();
-				
 			}
 		}
 	}
@@ -581,14 +588,16 @@ public class PlayerController : MonoBehaviour
 					for (int i = 1; i <= 5; i++)
 					{
 						string id;
-						if ((MenuController.screenValue == Constants.GAMESP || 
+						if (turno == Equipo.Blanco && 
+						    (MenuController.screenValue == Constants.GAMESP || 
 						    (MenuController.screenValue == Constants.GAMEMP && Network.isServer)) && 
 						    hit.collider.tag == (id = "P1F" + i))
 						{
 							selectDeselectPiece(id);
 							return;
 						}
-						else if ((MenuController.screenValue == Constants.GAMESP || 
+						else if (turno == Equipo.Rojo &&
+						         (MenuController.screenValue == Constants.GAMESP || 
 						         (MenuController.screenValue == Constants.GAMEMP && Network.isClient)) && 
 						         hit.collider.tag == (id = "P2F" + i))
 						{
@@ -612,6 +621,25 @@ public class PlayerController : MonoBehaviour
 					{
 						evaluarFin();
                     }
+
+					// En caso que sea el turno de la computadora jugar
+					if (end == false && MenuController.screenValue == Constants.GAMESP && turno == Equipo.Rojo)
+					{
+						List<Jugada> jugadas = jugar(MenuController.level, profundidad, turno);
+						foreach (Jugada jugada in jugadas)
+						{
+							evaluar = selected == ID_Pelota;
+							moverFicha(jugada);
+							if (evaluar)
+							{
+								evaluarFin();
+								if (end)
+								{
+									break;
+								}
+							}
+						}
+					}
                 }
 			}	
 		}	
@@ -651,11 +679,50 @@ public class PlayerController : MonoBehaviour
 		// Obtengo la posicion de la ficha
 		int fichaX = GameObject.FindWithTag(selected).GetComponent<MatrixAttributes>().x;
 		int fichaY = GameObject.FindWithTag(selected).GetComponent<MatrixAttributes>().y;
-        
+		
 		// Obtengo la posicion destino
 		int destinoX = GameObject.Find(hit.collider.name).GetComponent<MatrixAttributes>().x;
 		int destinoY = GameObject.Find(hit.collider.name).GetComponent<MatrixAttributes>().y;
-        
+
+		moverFicha(fichaX, fichaY, destinoX, destinoY);
+	}
+
+	void moverFicha(Jugada jugada)
+	{
+		string id;
+		bool b = true;
+		// Seleccionar la ficha a mover
+		if (selected == null)
+		{
+			for (int i = 1; i <= 2 && b; i++)
+			{
+				for (int j = 1; j <= 5 && b; j++)
+				{
+					id = "P" + i + "F" + j;
+					if (GameObject.FindWithTag(id).GetComponent<MatrixAttributes>().x == jugada.fichaX &&
+					    GameObject.FindWithTag(id).GetComponent<MatrixAttributes>().y == jugada.fichaY)
+					{
+						selectDeselectPiece(id);
+						b = false;
+					}
+				}
+			}
+		}
+		moverFicha(jugada.fichaX, jugada.fichaY, jugada.destinoX, jugada.destinoY);
+	}
+
+	void moverFicha(int fichaX, int fichaY, int destinoX, int destinoY)
+	{   
+		Vector3 posicion;
+		// HACK Caso especial para una ficha que tiene un nombre que colisiona
+		if (destinoX == 11 && destinoY == 0)
+		{
+			posicion = GameObject.Find(destinoX.ToString() + "-" + destinoY.ToString()).GetComponent<MeshCollider>().transform.position;
+		}
+		else 
+		{
+			posicion = GameObject.Find(destinoX.ToString() + destinoY.ToString()).GetComponent<MeshCollider>().transform.position;
+		}
 		// Verifico si es un movimiento valido
 		if (validarMovimiento(fichaX, fichaY, destinoX, destinoY))
 		{
@@ -673,11 +740,11 @@ public class PlayerController : MonoBehaviour
 			{
 				if (MenuController.screenValue == Constants.GAMEMP)
 				{
-					GetComponent<NetworkView>().RPC("moverPelotaEnServidorYCliente", RPCMode.All, destinoX, destinoY, hit.collider.transform.position);
+					GetComponent<NetworkView>().RPC("moverPelotaEnServidorYCliente", RPCMode.All, destinoX, destinoY, posicion);
 				}
 				else if (MenuController.screenValue == Constants.GAMESP)
 				{
-					moverPelotaEnServidorYCliente(destinoX, destinoY, hit.collider.transform.position);
+					moverPelotaEnServidorYCliente(destinoX, destinoY, posicion);
 				}
 			}
 			else
@@ -685,7 +752,7 @@ public class PlayerController : MonoBehaviour
 				// Mover la ficha
 				GameObject.FindWithTag(selected).GetComponent<MatrixAttributes>().x = destinoX; 
 				GameObject.FindWithTag(selected).GetComponent<MatrixAttributes>().y = destinoY;
-				GameObject.FindWithTag(selected).transform.position = hit.collider.transform.position;
+				GameObject.FindWithTag(selected).transform.position = posicion;
 			}
 
 			// Deseleccionar la ficha
@@ -709,7 +776,15 @@ public class PlayerController : MonoBehaviour
 				{
 					jugadaEspecial = true;
 					pases -= 1;
-					// TODO Hacer que vuelva a jugar la pc
+					// En caso que sea el turno de la computadora debe volver a jugar
+					if (MenuController.screenValue == Constants.GAMESP && turno == Equipo.Rojo)
+					{
+						List<Jugada> jugadas = jugar(MenuController.level, profundidad, turno);
+						foreach (Jugada jugada in jugadas)
+						{
+							moverFicha(jugada);
+						}
+					}
 				}
 				else
 				{
@@ -724,6 +799,7 @@ public class PlayerController : MonoBehaviour
 				}
 			}
 		}
+		imprimirTablero();
 	}
 
 	#region AI
@@ -742,7 +818,16 @@ public class PlayerController : MonoBehaviour
 		int valor = max(estado, jugador, ref listaJugadas, -infinito, infinito, profundidad);
 		if (valor == -infinito)
 		{
-			// TODO End game. Pelota ahogada
+			if (MenuController.screenValue == Constants.GAMEMP)
+			{
+				GetComponent<NetworkView>().RPC("setEnd", RPCMode.All, true);
+			}
+			else if (MenuController.screenValue == Constants.GAMESP)
+			{
+				setEnd(true);
+			}
+
+			return null;
 		}
 		
 		return listaJugadas;
@@ -753,7 +838,7 @@ public class PlayerController : MonoBehaviour
 		// Retornar si es un nodo hoja
 		if (profundidad == 0 || estado.esGol())
 		{
-			return estado.valorar(turno);
+			return estado.valorar();
 		}
 		
 		// Generar sucesores
@@ -778,7 +863,7 @@ public class PlayerController : MonoBehaviour
 						int djx = estado.jugadores[j].x + jx * dj;
 						int djy = estado.jugadores[j].y + jy * dj;
 						// Validar el movimiento
-						if (!validarMovimiento(estado.jugadores[j].x, estado.jugadores[j].y, djx, djy/*TODO , false*/))
+						if (!validarMovimiento(estado.jugadores[j].x, estado.jugadores[j].y, djx, djy, false))
 						{
 							continue;
 						}
@@ -786,15 +871,17 @@ public class PlayerController : MonoBehaviour
 						Jugada jugadaJugador = new Jugada(estado.jugadores[j].x, estado.jugadores[j].y, djx, djy);
 						jugadas.Add(jugadaJugador);
 						estado.mover(equipo, jugadaJugador, false);
-						/*Debug.Log("+Piece");
-						imprimirTablero();*/
-						// En caso de ser un pase de pelota, iterar en base a la esta
+						//Debug.Log("+Piece " + j + " " + djx + "," + djy + " (" + jx + ";" + jy + ")");
+						//imprimirTablero();
+						// En caso de ser un pase de pelota, iterar en base a esta
 						if (estado.pelota.tieneInfluencia(equipo, true))
 						{
 							bool terminar;
 							int m = iterarPelotaMax(estado, equipo, ref listaJugadas, ref jugadas, ref valor, ref alfa, ref beta, profundidad, out terminar);
 							if (terminar)
 							{
+								estado.mover(equipo, jugadaJugador, true);
+								jugadas.Remove(jugadaJugador);
 								return m;
 							}
 						}
@@ -814,6 +901,8 @@ public class PlayerController : MonoBehaviour
 							}
 							if (valor >= beta)
 							{
+								estado.mover(equipo, jugadaJugador, true);
+								jugadas.Remove(jugadaJugador);
 								return valor;
 							}
 							else if (valor > alfa)
@@ -824,8 +913,6 @@ public class PlayerController : MonoBehaviour
 						// Retornar el jugador
 						estado.mover(equipo, jugadaJugador, true);
 						jugadas.Remove(jugadaJugador);
-						/*Debug.Log("-Piece");
-						imprimirTablero();*/
 					}
 				}
 			}
@@ -852,18 +939,19 @@ public class PlayerController : MonoBehaviour
 					int dpx = estado.pelota.x + px * dp;
 					int dpy = estado.pelota.y + py * dp;
 					// Validar el movimiento
-					if (!validarMovimiento(estado.pelota.x, estado.pelota.y, dpx, dpy/*TODO , false*/))
+					if (!validarMovimiento(estado.pelota.x, estado.pelota.y, dpx, dpy, false))
 					{
 						continue;
 					}
 					// Mover la pelota
+					pases += 1;
 					Jugada jugadaPelota = new Jugada(estado.pelota.x, estado.pelota.y, dpx, dpy);
 					jugadas.Add(jugadaPelota);
 					estado.mover(equipo, jugadaPelota, false);
-					/*Debug.Log("+Ball");
+					/*Debug.Log("+Ball (" + iter + ") " + dpx + "," + dpy);
 					imprimirTablero();*/
 					// En caso de no poder seguir jugando, bajar un nivel
-					if (estado.pelota.tieneInfluencia(equipo, true) || jugadas.Count >= 5)
+					if (!estado.pelota.tieneInfluencia(equipo, true) || jugadas.Count >= 5)
 					{
 						int m = min(estado, proximoEquipo(equipo), alfa, beta, profundidad - 1);
 						if (m > valor)
@@ -879,6 +967,7 @@ public class PlayerController : MonoBehaviour
 						if (valor >= beta)
 						{
 							terminar = true;
+							pases -= 1;
 							return valor;
 						}
 						else if (valor > alfa)
@@ -892,10 +981,9 @@ public class PlayerController : MonoBehaviour
 						int m = iterarPelotaMax(estado, equipo, ref listaJugadas, ref jugadas, ref valor, ref alfa, ref beta, profundidad, out terminar);
 					}
 					// Retornar la pelota
+					pases -= 1;
 					estado.mover(equipo, jugadaPelota, true);
 					jugadas.Remove(jugadaPelota);
-					/*Debug.Log("-Ball");
-					imprimirTablero();*/
 				}
 			}
 		}
@@ -905,7 +993,7 @@ public class PlayerController : MonoBehaviour
 	
 	private int min(Estado estado, Equipo equipo, int alfa, int beta, int profundidad)
 	{
-		return estado.valorar(turno);
+		return estado.valorar();
 	}
 	
 	#endregion AI
@@ -923,30 +1011,38 @@ public class PlayerController : MonoBehaviour
 	}
 
 	// Verifica si el movimiento a realizar es valido
-	bool validarMovimiento(int fichaX, int fichaY, int destinoX, int destinoY)
+	bool validarMovimiento(int fichaX, int fichaY, int destinoX, int destinoY, bool verbose=true)
 	{
-		int arcoOffset = (ancho - anchoArco) / 2;
 		string mensaje = string.Empty;
-		BoardCell ficha = board[fichaX, fichaY];
-		BoardCell destino = board[destinoX, destinoY];
-        
+		int arcoOffset = (ancho - anchoArco) / 2;
+
 		/// Validar destino
 		// Asegurar que esté dentro del tablero. Los tableros cuentan como fuera del arco excepto en el caso de la pelota.
 		if (destinoX < 0 || destinoX >= alto ||
-			destinoY < 0 || destinoY >= ancho)
+		    destinoY < 0 || destinoY >= ancho || 
+		    ((destinoX == 0 || destinoX == (alto - 1)) &&
+		    (destinoY < arcoOffset || destinoY > arcoOffset + anchoArco)))
 		{
-			mensaje = "Casilla invalida";
-			mensajeError(mensaje);
+			if (verbose)
+			{
+				mensaje = "Casilla invalida";
+				mensajeError(mensaje);
+			}
 			return false;
 		}
+
+		BoardCell ficha = board[fichaX, fichaY];
+		BoardCell destino = board[destinoX, destinoY];
         
-		// Asegurar que exista una casilla para la posición indicada
+		// Asegurar que los jugadores no entren al arco
 		if (ficha.ficha != TipoFicha.Pelota && 
-			(destinoX == 0 || destinoX == (alto - 1)) &&
-			(destinoY >= arcoOffset || destinoY <= arcoOffset + anchoArco))
+			(destinoX == 0 || destinoX == (alto - 1)))
 		{
-			mensaje = "Los jugadores \n no pueden entrar al arco";
-			mensajeError(mensaje);
+			if (verbose)
+			{
+				mensaje = "Los jugadores \n no pueden entrar al arco";
+				mensajeError(mensaje);
+			}
 			return false;
 		}
         
@@ -954,16 +1050,22 @@ public class PlayerController : MonoBehaviour
 		if ((ficha.ficha == TipoFicha.Pelota || ficha.fichaEquipo() == turno) && turno == destino.equipo &&
 			destino.corner)
 		{
-			mensaje = "No se puede mover a un corner propio";
-			mensajeError(mensaje);
+			if (verbose)
+			{
+				mensaje = "No se puede mover a un corner propio";
+				mensajeError(mensaje);
+			}
 			return false;
 		}
         
 		// Asegurar que al mover la pelota la casilla pertenezca al equipo de turno
 		if (ficha.ficha == TipoFicha.Pelota && !destino.tieneInfluencia(turno, false))
 		{
-			mensaje = "El balon no puede terminar \nen posesion del oponente";
-			mensajeError(mensaje);
+			if (verbose)
+			{
+				mensaje = "El balon no puede terminar \nen posesion del oponente";
+				mensajeError(mensaje);
+			}
 			return false;
 		}
         
@@ -974,8 +1076,11 @@ public class PlayerController : MonoBehaviour
 			// Casilla neutra
 			if (!destino.influenciaNeutra())
 			{
-				mensaje = "Solo queda un pase disponible. La pelota \ndebe quedar en una casilla neutra";
-				mensajeError(mensaje);
+				if (verbose)
+				{
+					mensaje = "Solo queda un pase disponible. La pelota \ndebe quedar en una casilla neutra";
+					mensajeError(mensaje);
+				}
 				return false;
 			}
 		}
@@ -985,8 +1090,11 @@ public class PlayerController : MonoBehaviour
 			pases >= pasesMaximos - 1 &&
 			turno == destino.equipo)
 		{
-			mensaje = "La pelota no puede terminar\n del lado del equipo que empieza";
-			mensajeError(mensaje);
+			if (verbose)
+			{
+				mensaje = "La pelota no puede terminar\n del lado del equipo que empieza";
+				mensajeError(mensaje);
+			}
 			return false;
 		}
         
@@ -1000,8 +1108,11 @@ public class PlayerController : MonoBehaviour
 			(deltaDestinoX != 0 && deltaDestinoY != 0 &&
 			deltaDestinoX != deltaDestinoY))
 		{
-			mensaje = "El movimiento debe ser recto";
-			mensajeError(mensaje);
+			if (verbose)
+			{
+				mensaje = "El movimiento debe ser recto";
+				mensajeError(mensaje);
+			}
 			return false;
 		}
         
@@ -1009,16 +1120,22 @@ public class PlayerController : MonoBehaviour
 		if (deltaDestinoX > maximoMovimientos ||
 			deltaDestinoY > maximoMovimientos)
 		{
-			mensaje = "Mover hasta dos casillas";
-			mensajeError(mensaje);
+			if (verbose)
+			{
+				mensaje = "Mover hasta dos casillas";
+				mensajeError(mensaje);
+			}
 			return false;
 		}
         
 		// La casilla objetivo está ocupada
 		if (destino.ficha != TipoFicha.Vacio)
 		{
-			mensaje = "Se debe mover a una casilla libre";
-			mensajeError(mensaje);
+			if (verbose)
+			{
+				mensaje = "Se debe mover a una casilla libre";
+				mensajeError(mensaje);
+			}
 			return false;
 		}
 		// La casilla objetivo (y las adyacentes en caso de haber un arquero) está libre
@@ -1041,7 +1158,10 @@ public class PlayerController : MonoBehaviour
 					}
 					if (mensaje != string.Empty)
 					{
-						mensajeError(mensaje);
+						if (verbose)
+						{
+							mensajeError(mensaje);
+						}
 						return false;
 					}
 				}
@@ -1056,8 +1176,11 @@ public class PlayerController : MonoBehaviour
             
 			if (fichaPase != null && fichaPase == fichaReceptora)
 			{
-				mensaje = "No se puede hacer un autopase";
-				mensajeError(mensaje);
+				if (verbose)
+				{
+					mensaje = "No se puede hacer un autopase";
+					mensajeError(mensaje);
+				}
 				return false;
 			}
 		}
@@ -1073,8 +1196,11 @@ public class PlayerController : MonoBehaviour
                 
 				if (deltaX > 1 || deltaY > 1)
 				{
-					mensaje = "No se puede perder la neutralidad \nde la pelota";
-					mensajeError(mensaje);
+					if (verbose)
+					{
+						mensaje = "No se puede perder la neutralidad \nde la pelota";
+						mensajeError(mensaje);
+					}
 					return false;
 				}
 			}
@@ -1086,8 +1212,11 @@ public class PlayerController : MonoBehaviour
 			destino.equipo == turno &&
 			!destino.tieneInfluencia(turno, true))
 		{
-			mensaje = "La pelota debe quedar fuera del area";
-			mensajeError(mensaje);
+			if (verbose)
+			{
+				mensaje = "La pelota debe quedar fuera del area";
+				mensajeError(mensaje);
+			}
 			return false;
 		}
         
@@ -1141,8 +1270,11 @@ public class PlayerController : MonoBehaviour
 				board[destinoX, destinoY + 1].esArquero(true) &&
 				board[destinoX, destinoY + 1].area)))
 			{
-				mensaje = "La pelota no puede pasar jugadores en el area";
-				mensajeError(mensaje);
+				if (verbose)
+				{
+					mensaje = "La pelota no puede pasar jugadores en el area";
+					mensajeError(mensaje);
+				}
 				return false;
 			}
 			else if (board[destinoX, destinoY].ficha != TipoFicha.Vacio &&
@@ -1150,8 +1282,11 @@ public class PlayerController : MonoBehaviour
 				ficha.ficha != TipoFicha.Vacio && 
 				board[destinoX, destinoY].ficha != TipoFicha.Vacio)
 			{
-				mensaje = "No se puede atravesar a otros jugadores";
-				mensajeError(mensaje);
+				if (verbose)
+				{
+					mensaje = "No se puede atravesar a otros jugadores";
+					mensajeError(mensaje);
+				}
 				return false;
 			}
 		}
@@ -1171,6 +1306,7 @@ public class PlayerController : MonoBehaviour
 			}
 			influencia += "\n";
 		}
+		Debug.Log(influencia);
 	}
 
 	void imprimirTablero()
@@ -1184,6 +1320,7 @@ public class PlayerController : MonoBehaviour
 			}
 			influencia += "\n";
 		}
+		Debug.Log(influencia);
 	}
 
 	// Encuentra la ficha adyacente a la pelota. En caso de haber mas de un jugador retorna null.
@@ -1273,17 +1410,19 @@ public class PlayerController : MonoBehaviour
 
 	// Actualiza el marcador en el cliente y servidor
 	[RPC]
-	void refreshScore(int player)
+	void refreshScore(Equipo equipo)
 	{
-		if (player == 1)
+		if (equipo == Equipo.Blanco)
 		{
-			marcador1 = marcador1 + 1;
-			marcadores.puntajeBlanco=marcador1;
+			marcador1 += 1;
+			marcadores.puntajeBlanco = marcador1;
+			turno = Equipo.Rojo;
 		}
 		else
 		{
-			marcador2 = marcador2 + 1;
-			marcadores.puntajeRojo=marcador2;
+			marcador2 += 1;
+			marcadores.puntajeRojo = marcador2;
+			turno = Equipo.Blanco;
 		}
 	}
 
@@ -1307,11 +1446,11 @@ public class PlayerController : MonoBehaviour
 				// Aumento el marcador del jugador 1
 				if (MenuController.screenValue == Constants.GAMEMP)
 				{
-					GetComponent<NetworkView>().RPC("refreshScore", RPCMode.All, 1);
+					GetComponent<NetworkView>().RPC("refreshScore", RPCMode.All, Equipo.Blanco);
 				}
 				else if (MenuController.screenValue == Constants.GAMESP)
 				{
-					refreshScore(1);
+					refreshScore(Equipo.Blanco);
 				}
 				return true;
 			}
@@ -1320,11 +1459,11 @@ public class PlayerController : MonoBehaviour
 				// Aumento el marcador del jugador 2
 				if (MenuController.screenValue == Constants.GAMEMP)
 				{
-					GetComponent<NetworkView>().RPC("refreshScore", RPCMode.All, 2);
+					GetComponent<NetworkView>().RPC("refreshScore", RPCMode.All, Equipo.Rojo);
 				}
 				else if (MenuController.screenValue == Constants.GAMESP)
 				{
-					refreshScore(2);
+					refreshScore(Equipo.Rojo);
 				}
 				return true;
 			}
@@ -1405,6 +1544,25 @@ public class PlayerController : MonoBehaviour
 				{
 					restartPieces();
 				}
+				
+				// En caso que sea el turno de la computadora jugar
+				if (end == false && MenuController.screenValue == Constants.GAMESP && turno == Equipo.Rojo)
+				{
+					List<Jugada> jugadas = jugar(MenuController.level, profundidad, turno);
+					foreach (Jugada jugada in jugadas)
+					{
+						bool evaluar = selected == ID_Pelota;
+						moverFicha(jugada);
+						if (evaluar)
+						{
+							evaluarFin();
+							if (end)
+							{
+								break;
+							}
+						}
+					}
+				}
 			}
 			
 		}
@@ -1428,7 +1586,21 @@ public class PlayerController : MonoBehaviour
 	{
 		jugadaEspecial = false;
 		pases = 0;
-		if (turno == Equipo.Blanco)
+		contadorTurnos += 1;
+
+		// Si se llego a los 50 turnos termiar el partido con el puntaje actual
+		if (contadorTurnos > 50)
+		{
+			if (MenuController.screenValue == Constants.GAMEMP)
+			{
+				GetComponent<NetworkView>().RPC("setEnd", RPCMode.All, true);
+			}
+			else if (MenuController.screenValue == Constants.GAMESP)
+			{
+				setEnd(true);
+			}
+		}
+		else if (turno == Equipo.Blanco)
 		{
 			turno = Equipo.Rojo;
 			marcadores.turnoText= "Roja";
