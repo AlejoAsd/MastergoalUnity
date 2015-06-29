@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public enum EstadoJuego
 {
@@ -176,6 +177,250 @@ public class BoardCell
 	}
 }
 
+public class Jugada
+{
+	public int fichaX;
+	public int fichaY;
+	public int destinoX;
+	public int destinoY;
+	
+	public Jugada(int fichaX, int fichaY, int destinoX, int destinoY)
+	{
+		this.fichaX = fichaX;
+		this.fichaY = fichaY;
+		this.destinoX = destinoX;
+		this.destinoY = destinoY;
+	}
+}
+
+public class Estado
+{
+	public BoardCell[,] board;
+	public int nivel;
+	public int cantidadFichas;
+	public int alto;
+	public int ancho;
+	public BoardCell pelota;
+	public BoardCell[] jugadores;
+	public BoardCell[] oponentes;
+	public BoardCell arqueroJugador;
+	public BoardCell arqueroOponente;
+	
+	private enum PesoAI
+	{
+		Ball_advance,
+		Pl_ball_dist_1,
+		Pl_ball_dist_2,
+		Pl_ball_dist_3,
+		Pl_advance_1,
+		Pl_advance_2,
+		Pl_advance_3,
+		Pl_too_close_border,
+		Pl_keeper_in_area,
+		Op_ball_dist_1,
+		Op_ball_dist_2,
+		Op_ball_dist_3,
+		Op_advance_1,
+		Op_advance_2,
+		Op_advance_3,
+		Op_too_close_border,
+		Op_keeper_in_area,
+		Closer_to_ball,
+		Neutral_sqr,
+		Special_sqr,
+		Pls_too_close,
+		Pls_too_far,
+		Ops_too_close,
+		Ops_too_far
+	}
+	
+	public Estado(BoardCell[,] board, int nivel, int alto, int ancho, Equipo equipo)
+	{
+		this.board = board;
+		this.alto = alto;
+		this.ancho = ancho;
+		
+		// Indicar la cantidad de fichas en base al nivel
+		if (nivel == 1 || nivel == 2)
+		{
+			cantidadFichas = nivel;
+		}
+		else if (nivel == 3)
+		{
+			cantidadFichas = 5;
+		}
+		
+		jugadores = new BoardCell[cantidadFichas];
+		oponentes = new BoardCell[cantidadFichas];
+		
+		// Inicializar la lista de jugadores, oponentes y pelota
+		int ij = 0;
+		int io = 0;
+		for (int i = 1; i < alto - 1; i++)
+		{
+			for (int j = 0; j < ancho; j++)
+			{
+				if (board[i, j].ficha == TipoFicha.Pelota)
+				{
+					pelota = board[i, j];
+				}
+				if (board[i, j].fichaEquipo() == equipo)
+				{
+					jugadores[ij] = board[i, j];
+					ij += 1;
+					// En caso que sea el arquero del equipo
+					if (board[i,j].esArquero(false))
+					{
+						arqueroJugador = board[i,j];
+					}
+				}
+				else if (board[i, j].fichaEquipo() != Equipo.Ninguno)
+				{
+					oponentes[io] = board[i, j];
+					io += 1;
+					// En caso que sea el arquero del equipo
+					if (board[i,j].esArquero(false))
+					{
+						arqueroOponente = board[i,j];
+					}
+				}
+			}
+		}
+	}
+	
+	public bool esGol()
+	{
+		return (pelota.x == 0 || pelota.x == (alto - 1)) && 
+			(pelota.y >= 3 || pelota.y <= 7);
+	}
+	
+	public void mover(Equipo equipo, Jugada jugada, bool deshacer)
+	{
+		int fichaX, fichaY, destinoX, destinoY;
+		// Definir el sentido del movimiento
+		if (deshacer)
+		{
+			fichaX = jugada.destinoX;
+			fichaY = jugada.destinoY;
+			destinoX = jugada.fichaX;
+			destinoY = jugada.fichaY;
+		}
+		else
+		{
+			fichaX = jugada.fichaX;
+			fichaY = jugada.fichaY;
+			destinoX = jugada.destinoX;
+			destinoY = jugada.destinoY;
+		}
+		
+		// Realizar los cambios de posicion
+		setFicha(destinoX, destinoY, board[fichaX, fichaY].ficha);
+		setFicha(fichaX, fichaY, TipoFicha.Vacio);
+		
+		// Actualizar la referencia
+		// Pelota
+		if (board[fichaX, fichaY].ficha == TipoFicha.Pelota)
+		{
+			pelota = board[destinoX, destinoY];
+		}
+		// Jugador
+		else
+		{
+			for (int i = 0; i < cantidadFichas; i++)
+			{
+				if (equipo == Equipo.Blanco && 
+				    jugadores[i].x == fichaX && 
+				    jugadores[i].y == fichaY)
+				{
+					jugadores[i] = board[destinoX, destinoY];
+				}
+				else if (equipo == Equipo.Rojo && 
+				         oponentes[i].x == fichaX && 
+				         oponentes[i].y == fichaY)
+				{
+					oponentes[i] = board[destinoX, destinoY];
+				}
+			}
+		}
+	}
+	
+	private void setFicha(int x, int y, TipoFicha ficha)
+	{
+		TipoFicha fichaPrevia = board[x, y].ficha;
+		board[x, y].ficha = ficha;
+		if (ficha == TipoFicha.Vacio)
+		{
+			modificarInfluencia(x, y, fichaPrevia, true);
+		}
+		else
+		{
+			modificarInfluencia(x, y, ficha, false);
+		}
+	}
+	
+	void modificarInfluencia(int x, int y, TipoFicha ficha, bool negativo)
+	{
+		for (int i = (x - 1); i <= (x + 1); i++)
+		{
+			for (int j = (y - 1); j <= (y + 1); j++)
+			{
+				if (i > 0 && i < (alto - 1) &&
+				    j >= 0 && j < ancho)
+				{
+					board[i, j].modificarInfluencia(ficha, negativo);
+				}
+			}
+		}
+	}
+	
+	public int valorar(Equipo equipo)
+	{
+		/*Hashtable pesos = new Hashtable();
+		
+		if (nivel == 3)
+		{
+			nivel = 5;
+		}
+		
+		pesos[PesoAI.Ball_advance] = System.Math.Abs(alto / 2 - pelota.y) * (pelota.equipo == equipo ? 1 : -1);
+		
+		if ((pesos[PesoAI.Ball_advance] == 6.0 && 
+		     (pelota.x == 1 || 
+		 pelota.x == 2 || 
+		 pelota.x == 9 || 
+		 pelota.x == 10)) || 
+		    (pesos[PesoAI.Ball_advance] == 5.0 && 
+		 (pelota.x == 1 || 
+		 pelota.x == 10)))
+		{
+			pesos[PesoAI.Ball_advance]--;
+		}
+		
+		
+		List<BoardCell> distanciaJugador;
+		List<BoardCell> distanciaOponente;
+		List<BoardCell> ventajaJugador;
+		List<BoardCell> ventajaOponente;
+		for (int i = 0; i < nivel; i++)
+		{
+			distanciaJugador.Add(jugadores[i].distancia(pelota));
+			distanciaOponente.Add(oponentes[i].distancia(pelota));
+			if (turno != equipo)
+			{
+				ventajaJugador.Add(-(jugadores[0].x - 7));
+				ventajaOponente.Add(oponentes[0].x - 7);
+			}
+			else
+			{
+				ventajaJugador.Add(jugadores[0].x - 7);
+				ventajaOponente.Add(-(oponentes[0].x - 7));
+			}
+		}*/
+		// HACK
+		return new System.Random().Next(0, 1000);
+	}
+}
+
 public class PlayerController : MonoBehaviour
 {
 	// Constantes de identificacion
@@ -191,6 +436,7 @@ public class PlayerController : MonoBehaviour
 	public const string ID_P2F3 = "P2F3";
 	public const string ID_P2F4 = "P2F4";
 	public const string ID_P2F5 = "P2F5";
+	private const int infinito = 1000000000;
 
 	// Dimensiones del tablero
 	static int ancho = 11;
@@ -479,6 +725,192 @@ public class PlayerController : MonoBehaviour
 		Debug.Log("Influencia");
 		imprimirInfluencia();
 	}
+
+	#region AI
+	
+	private Equipo proximoEquipo(Equipo equipo)
+	{
+		return equipo == Equipo.Blanco ? Equipo.Rojo : Equipo.Blanco;
+	}
+	
+	private List<Jugada> jugar(int nivel, int profundidad, Equipo jugador)
+	{		
+		List<Jugada> listaJugadas = new List<Jugada>();
+		
+		Estado estado = new Estado(board, nivel, alto, ancho, turno);
+		
+		int valor = max(estado, jugador, ref listaJugadas, -infinito, infinito, profundidad);
+		if (valor == -infinito)
+		{
+			// TODO End game. Pelota ahogada
+		}
+		
+		return listaJugadas;
+	}
+	
+	private int max(Estado estado, Equipo equipo, ref List<Jugada> listaJugadas, int alfa, int beta, int profundidad)
+	{
+		// Retornar si es un nodo hoja
+		if (profundidad == 0 || estado.esGol())
+		{
+			return estado.valorar(turno);
+		}
+		
+		// Generar sucesores
+		int valor = -infinito;
+		List<Jugada> jugadas = new List<Jugada>();
+		// Ficha
+		for (int j = 0; j < estado.cantidadFichas; j++)
+		{
+			// Distancia
+			for (int dj = 1; dj <= 2; dj++)
+			{
+				// Direccion Jugador
+				for (int jx = -1; jx <= 1; jx++)
+				{
+					for (int jy = -1; jy <= 1; jy++)
+					{
+						if (jx == 0 && jy == 0)
+						{
+							continue;
+						}
+						
+						int djx = estado.jugadores[j].x + jx * dj;
+						int djy = estado.jugadores[j].y + jy * dj;
+						// Validar el movimiento
+						if (!validarMovimiento(estado.jugadores[j].x, estado.jugadores[j].y, djx, djy/*TODO , false*/))
+						{
+							continue;
+						}
+						// Mover al jugador
+						Jugada jugadaJugador = new Jugada(estado.jugadores[j].x, estado.jugadores[j].y, djx, djy);
+						jugadas.Add(jugadaJugador);
+						estado.mover(equipo, jugadaJugador, false);
+						/*Debug.Log("+Piece");
+						imprimirTablero();*/
+						// En caso de ser un pase de pelota, iterar en base a la esta
+						if (estado.pelota.tieneInfluencia(equipo, true))
+						{
+							bool terminar;
+							int m = iterarPelotaMax(estado, equipo, ref listaJugadas, ref jugadas, ref valor, ref alfa, ref beta, profundidad, out terminar);
+							if (terminar)
+							{
+								return m;
+							}
+						}
+						// Si no se hizo un pase, bajar un nivel
+						else
+						{
+							int m = min(estado, proximoEquipo(equipo), alfa, beta, profundidad - 1);
+							if (m > valor)
+							{
+								valor = m;
+								
+								// Si se esta buscando la lista de jugadas, hacer una copia de las jugadas en su estado actual
+								if (listaJugadas != null)
+								{
+									listaJugadas = new List<Jugada>(jugadas);
+								}
+							}
+							if (valor >= beta)
+							{
+								return valor;
+							}
+							else if (valor > alfa)
+							{
+								alfa = valor;
+							}
+						}
+						// Retornar el jugador
+						estado.mover(equipo, jugadaJugador, true);
+						jugadas.Remove(jugadaJugador);
+						/*Debug.Log("-Piece");
+						imprimirTablero();*/
+					}
+				}
+			}
+		}
+		
+		return valor;
+	}
+	
+	private int iterarPelotaMax(Estado estado, Equipo equipo, ref List<Jugada> listaJugadas, ref List<Jugada> jugadas, ref int valor, ref int alfa, ref int beta, int profundidad, out bool terminar)
+	{
+		terminar = false;
+		for (int dp = 1; dp <= 4; dp++)
+		{
+			// Direccion Pelota
+			for (int px = -1; px <= 1; px++)
+			{
+				for (int py = -1; py <= 1; py++)
+				{
+					if (px == 0 && py == 0)
+					{
+						continue;
+					}
+					
+					int dpx = estado.pelota.x + px * dp;
+					int dpy = estado.pelota.y + py * dp;
+					// Validar el movimiento
+					if (!validarMovimiento(estado.pelota.x, estado.pelota.y, dpx, dpy/*TODO , false*/))
+					{
+						continue;
+					}
+					// Mover la pelota
+					Jugada jugadaPelota = new Jugada(estado.pelota.x, estado.pelota.y, dpx, dpy);
+					jugadas.Add(jugadaPelota);
+					estado.mover(equipo, jugadaPelota, false);
+					/*Debug.Log("+Ball");
+					imprimirTablero();*/
+					// En caso de no poder seguir jugando, bajar un nivel
+					if (estado.pelota.tieneInfluencia(equipo, true) || jugadas.Count >= 5)
+					{
+						int m = min(estado, proximoEquipo(equipo), alfa, beta, profundidad - 1);
+						if (m > valor)
+						{
+							valor = m;
+							
+							// Si se esta buscando la lista de jugadas, hacer una copia de las jugadas en su estado actual
+							if (listaJugadas != null)
+							{
+								listaJugadas = new List<Jugada>(jugadas);
+							}
+						}
+						if (valor >= beta)
+						{
+							terminar = true;
+							return valor;
+						}
+						else if (valor > alfa)
+						{
+							alfa = valor;
+						}
+					}
+					// Sino seguir jugando
+					else
+					{
+						int m = iterarPelotaMax(estado, equipo, ref listaJugadas, ref jugadas, ref valor, ref alfa, ref beta, profundidad, out terminar);
+					}
+					// Retornar la pelota
+					estado.mover(equipo, jugadaPelota, true);
+					jugadas.Remove(jugadaPelota);
+					/*Debug.Log("-Ball");
+					imprimirTablero();*/
+				}
+			}
+		}
+		
+		return valor;
+	}
+	
+	private int min(Estado estado, Equipo equipo, int alfa, int beta, int profundidad)
+	{
+		return estado.valorar(turno);
+	}
+	
+	#endregion AI
+
+	#region RPC
 
 	[RPC]
 	void moverPelotaEnServidorYCliente(int destX, int destY, Vector3 pos){
@@ -1006,4 +1438,6 @@ public class PlayerController : MonoBehaviour
 			marcadores.contador = 45;
 		}
 	}
+
+	#endregion RPC
 }
