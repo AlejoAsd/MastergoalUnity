@@ -224,7 +224,7 @@ public class PlayerController : MonoBehaviour
 		marcador1 = 0;
 		marcador2 = 0;
 		turno = Equipo.Blanco;
-		initializeMatrix();
+		//initializeMatrix();
 	}
 
 	// Inicializa la matriz con los valores segun las posiciones de las fichas
