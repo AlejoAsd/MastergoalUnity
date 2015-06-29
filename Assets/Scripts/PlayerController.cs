@@ -913,7 +913,10 @@ public class PlayerController : MonoBehaviour
 	#region RPC
 
 	[RPC]
-	void moverPelotaEnServidorYCliente(int destX, int destY, Vector3 pos){
+	void moverPelotaEnServidorYCliente(int destX, int destY, Vector3 pos)
+	{
+		pases += 1;
+
 		GameObject.FindWithTag(ID_Pelota).GetComponent<MatrixAttributes>().x = destX; 
 		GameObject.FindWithTag(ID_Pelota).GetComponent<MatrixAttributes>().y = destY;
 		GameObject.FindWithTag(ID_Pelota).transform.position = pos;
@@ -966,7 +969,7 @@ public class PlayerController : MonoBehaviour
         
 		// Asegurar que la pelota termine en una casilla neutra y fuera del area del jugador de turno
 		if (ficha.ficha == TipoFicha.Pelota &&
-			pases == pasesMaximos)
+			pases >= pasesMaximos - 1)
 		{
 			// Casilla neutra
 			if (!destino.influenciaNeutra())
@@ -979,7 +982,7 @@ public class PlayerController : MonoBehaviour
         
 		// Asegurar que la pelota no termine del lado del jugador que saca en el primer turno
 		if (contadorTurnos == 1 &&
-			pases == pasesMaximos &&
+			pases >= pasesMaximos - 1 &&
 			turno == destino.equipo)
 		{
 			mensaje = "La pelota no puede terminar\n del lado del equipo que empieza";
