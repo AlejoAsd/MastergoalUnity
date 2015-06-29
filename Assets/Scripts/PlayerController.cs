@@ -271,6 +271,11 @@ public class PlayerController : MonoBehaviour
 
 	void Update()
 	{   
+		if (MenuController.screenValue == Constants.GAMESP && this.tag != ID_P1F1)
+		{
+			return;
+		}
+
 		if (MenuController.screenValue == Constants.GAMESP || (MenuController.screenValue == Constants.GAMEMP && GetComponent<NetworkView>().isMine))
 		{
 			InputMovement();

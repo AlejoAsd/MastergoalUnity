@@ -102,7 +102,6 @@ public class MenuController : MonoBehaviour
 	{
 		Debug.Log("Joined Server");
 		ServerSpawnPlayer2();
-		GameObject.FindWithTag("P2F1").AddComponent<PlayerController>();
 	}
 
 	void OnDisconnectedFromServer()
