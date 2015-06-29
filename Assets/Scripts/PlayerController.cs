@@ -473,7 +473,7 @@ public class PlayerController : MonoBehaviour
 			(destinoX == 0 || destinoX == (alto - 1)) &&
 			(destinoY >= arcoOffset || destinoY <= arcoOffset + anchoArco))
 		{
-			mensaje = "Los jugadores no pueden entrar al arco";
+			mensaje = "Los jugadores \n no pueden entrar al arco";
 			mensajeError(mensaje);
 			return false;
 		}
@@ -490,7 +490,7 @@ public class PlayerController : MonoBehaviour
 		// Asegurar que al mover la pelota la casilla pertenezca al equipo de turno
 		if (ficha.ficha == TipoFicha.Pelota && !destino.tieneInfluencia(turno, false))
 		{
-			mensaje = "La pelota no puede terminar en posesion del oponente";
+			mensaje = "El balon no puede terminar \nen posesion del oponente";
 			mensajeError(mensaje);
 			return false;
 		}
@@ -502,7 +502,7 @@ public class PlayerController : MonoBehaviour
 			// Casilla neutra
 			if (!destino.influenciaNeutra())
 			{
-				mensaje = "Solo queda un pase disponible. La pelota debe quedar en una casilla neutra";
+				mensaje = "Solo queda un pase disponible. La pelota \ndebe quedar en una casilla neutra";
 				mensajeError(mensaje);
 				return false;
 			}
@@ -513,7 +513,7 @@ public class PlayerController : MonoBehaviour
 			pases == pasesMaximos &&
 			turno == destino.equipo)
 		{
-			mensaje = "La pelota no puede terminar del lado del equipo que empieza";
+			mensaje = "La pelota no puede terminar\n del lado del equipo que empieza";
 			mensajeError(mensaje);
 			return false;
 		}
@@ -537,7 +537,7 @@ public class PlayerController : MonoBehaviour
 		if (deltaDestinoX > maximoMovimientos ||
 			deltaDestinoY > maximoMovimientos)
 		{
-			mensaje = "No se puede desplazar esa cantidad de casillas";
+			mensaje = "Mover hasta dos casillas";
 			mensajeError(mensaje);
 			return false;
 		}
@@ -565,7 +565,7 @@ public class PlayerController : MonoBehaviour
 					}
 					else if (board[destinoX, destinoY + i].esArquero(false))
 					{
-						mensaje = "No se puede terminar en una casilla adyacente al arquero";
+						mensaje = "No se puede terminar en una casilla\n adyacente al arquero";
 					}
 					if (mensaje != string.Empty)
 					{
@@ -601,7 +601,7 @@ public class PlayerController : MonoBehaviour
                 
 				if (deltaX > 1 || deltaY > 1)
 				{
-					mensaje = "No se puede perder la neutralidad de la pelota";
+					mensaje = "No se puede perder la neutralidad \nde la pelota";
 					mensajeError(mensaje);
 					return false;
 				}
@@ -687,10 +687,6 @@ public class PlayerController : MonoBehaviour
 		return true;
 	}
 
-	void mensajeError(string mensaje)
-	{
-		Debug.Log(mensaje);
-	}
 
 	void imprimirInfluencia()
 	{
@@ -812,13 +808,28 @@ public class PlayerController : MonoBehaviour
 		if (player == 1)
 		{
 			marcador1 = marcador1 + 1;
+			marcadores.puntajeBlanco=marcador1;
 		}
 		else
 		{
 			marcador2 = marcador2 + 1;
+			marcadores.puntajeRojo=marcador2;
 		}
 	}
-	
+
+	void mensajeError(string mensaje)
+	{
+		Debug.Log(mensaje);
+		int i=0;
+		marcadores.errorText = mensaje;
+		marcadores.ShowLabel = true;
+		marcadores.contadorErrorFloat = 4;
+		
+		
+		
+	}
+
+
 	// Verifica si se metio un gol y aumenta el marcador
 	bool isGoal()
 	{
@@ -923,10 +934,14 @@ public class PlayerController : MonoBehaviour
 		if (turno == Equipo.Blanco)
 		{
 			turno = Equipo.Rojo;
+			marcadores.turnoText= "Roja";
+			marcadores.contador = 45;
 		}
 		else if (turno == Equipo.Rojo)
 		{
 			turno = Equipo.Blanco;
+			marcadores.turnoText= "Blanca";
+			marcadores.contador = 45;
 		}
 	}
 }

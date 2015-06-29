@@ -7,6 +7,23 @@ static class Constants
 	public const int SERVERLIST = 1;
 	public const int LEVELSELECTION = 2;
 	public const int GAME = 3;
+	public const int TUTORIAL = 9;
+	public const int STANDALONE = 4;
+	
+}
+
+public class marcadores
+{
+	
+	public static string errorText= "Error";// solo reemplazar esto para tener los mensajes
+	public static string turnoText= "Blanca";
+	public static int puntajeRojo=0;
+	public static int puntajeBlanco=0;
+	public static bool ShowLabel= false;
+	public static int contador = 45;
+	public static float contFloat=45;
+	public static float contadorErrorFloat = 3;
+	public static int contadorError = 4;
 	
 }
 
@@ -42,6 +59,7 @@ public class MenuController : MonoBehaviour {
 	public GUIStyle customStyle;
 	public GUIStyle customButton;
 	public GUIStyle customBox;
+	public GUIStyle marcadorStyle;
 
 	/**************************** Funciones de red ****************************/ 
 	//Inicializar servidor
@@ -100,6 +118,31 @@ public class MenuController : MonoBehaviour {
 		int number = Random.Range (0, 100);
 		return "Juegol" + number + "-Nivel" + level;
 	}
+
+
+	public void update ()
+	{
+		marcadores.contFloat -= Time.deltaTime;
+		marcadores.contador = (int)marcadores.contFloat;
+		
+		// esto es para que desaparezca el mensaje de error en cierto tiempo
+		marcadores.contadorErrorFloat -= Time.deltaTime;
+		marcadores.contadorError = (int)marcadores.contadorErrorFloat;
+		
+		if (marcadores.contadorError<=0)// o fin de turno
+		{
+			marcadores.ShowLabel = false;
+		}
+		
+		if (marcadores.contador==0)// o fin de turno
+		{
+			marcadores.contador=45;
+		}
+		
+		//UpdateScore ();
+	}
+
+
 
 	// Genera las fichas del jugador 1 (server)
 	private void SpawnPlayer1()
@@ -196,6 +239,16 @@ public class MenuController : MonoBehaviour {
 				screenValue = Constants.SERVERLIST;
 				RefreshHostList();
 			}
+
+			if (GUI.Button (new Rect (X_INICIAL, Y_INICIAL + BTN_HEIGHT + 300, BTN_WIDTH, BTN_HEIGHT), "Tutorial", customButton)) {
+				screenValue = Constants.TUTORIAL;
+				RefreshHostList();
+			}
+			//screenValue habilita para funciontar
+			/*if (GUI.Button (new Rect (X_INICIAL, Y_INICIAL + BTN_HEIGHT + 600, BTN_WIDTH, BTN_HEIGHT), "Stand Alone", customButton)) {
+				screenValue = Constants.STANDALONE;
+				RefreshHostList();
+			}*/
 		
 			// Evento a llamar al apretar el boton de atras de android
 			if (Input.GetKeyDown(KeyCode.Escape)) { 
@@ -279,6 +332,30 @@ public class MenuController : MonoBehaviour {
 
 		/**************************** Pantalla de Juego ****************************/
 		if (screenValue == Constants.GAME) {
+
+			update ();// actualiza el valor del cronometro
+			
+			if(marcadores.ShowLabel)// esto es para los mensajes de error
+				GUI.Label (new Rect (100,10,200,40), marcadores.errorText,marcadorStyle);
+			
+			// muestra el turno actual
+			GUI.Label (new Rect (400,200,200,40), ("Turno = " + marcadores.turnoText) , marcadorStyle);
+			
+			// para que desaparezca el  mensaje error
+			//GUI.Label (new Rect (80,10,200,20), ("" + marcadores.contadorError),marcadorStyle);
+			
+			// muestra el contador
+			//GUI.Label (new Rect (80,10,200,20), ("" + marcadores.contador),marcadorStyle);
+			
+			// esto es para los puntajes
+			GUI.Label (new Rect (100,400,200,20), ("Blanco : " + marcadores.puntajeBlanco),marcadorStyle);
+			GUI.Label (new Rect (100,450,200,20), ("Rojo : " + marcadores.puntajeRojo),marcadorStyle);
+			
+
+
+
+
+
 			// Evento a llamar al apretar el boton de atras de android
 			if (Input.GetKeyUp(KeyCode.Escape)) { 
 				Network.Disconnect();
