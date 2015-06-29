@@ -13,6 +13,25 @@ static class Constants
 	
 }
 
+/*public class TextScale : MonoBehaviour {
+	//Base value of resolution screen for which the text is made
+	public float origW = 1920.0f;
+	public float origH = 1080.0f;
+	
+	void Start() {
+		float scaleX = (float)(Screen.width) / origW; //your scale x
+		float scaleY = (float)(Screen.height) / origH; //your scale y
+		//Find all GUIText object on your scene
+		GUIText[] texts =  FindObjectsOfType(GUIText) as GUIText[]; 
+		foreach(GUIText myText in texts) { //find your element of text
+			Vector2 pixOff = myText.pixelOffset; //your pixel offset on screen
+			int origSizeText = myText.fontSize;
+			myText.pixelOffset = new Vector2(pixOff.x*scaleX, pixOff.y*scaleY); //new position
+			myText.fontSize = origSizeText * scaleX; //new size font
+		}
+	}
+}*/
+
 public class marcadores
 {
 	
@@ -25,6 +44,8 @@ public class marcadores
 	public static float contFloat = 45;
 	public static float contadorErrorFloat = 3;
 	public static int contadorError = 4;
+
+	public static int ajusteResolucion = 0;
 	
 }
 
@@ -61,7 +82,13 @@ public class MenuController : MonoBehaviour
 	public GUIStyle customStyle;
 	public GUIStyle customButton;
 	public GUIStyle customBox;
-	public GUIStyle marcadorStyle;
+	public GUIStyle marcadorStyle ;
+	
+	//= Mathf.Min(Mathf.FloorToInt(Screen.width * fontSize/1000), Mathf.FloorToInt(Screen.height * fontSize/1000))
+
+
+
+
 
 	/**************************** Funciones de red ****************************/ 
 	//Inicializar servidor
@@ -150,6 +177,7 @@ public class MenuController : MonoBehaviour
 		SpawnPlayer1();
 		SpawnPlayer2();
 		SpawnBall();
+
 	}
 
 	#region Spawns Singleplayer
@@ -313,6 +341,7 @@ public class MenuController : MonoBehaviour
 	void generateTitle()
 	{
 		GUI.Label(new Rect(0, 10, Screen.width, 100), "MASTERGOAL", customStyle);
+
 	}
 
 	void OnGUI()
@@ -469,9 +498,20 @@ public class MenuController : MonoBehaviour
 
 		}
 
+
+
 		/**************************** Pantalla de Juego ****************************/
 		if (screenValue == Constants.GAMESP || screenValue == Constants.GAMEMP)
 		{
+			//marcadorStyle=  Mathf.Min(Mathf.FloorToInt(Screen.width * fontSize/1000), Mathf.FloorToInt(Screen.height * fontSize/1000));
+				
+			if(marcadores.ajusteResolucion==0)
+			{
+				marcadorStyle.fontSize = Mathf.Min(Mathf.FloorToInt(Screen.width * marcadorStyle.fontSize/1080), Mathf.FloorToInt(Screen.height * marcadorStyle.fontSize/1920));
+				marcadores.ajusteResolucion=1;
+			}
+
+
 
 			update();// actualiza el valor del cronometro
 			
@@ -483,7 +523,7 @@ public class MenuController : MonoBehaviour
 			// muestra el turno actual
 			//GUI.Label (new Rect (400,200,200,40), ("Turno = " + marcadores.turnoText) , marcadorStyle);
 
-			GUI.Label (new Rect (Screen.height/6,Screen.height/8,200,40), ("Turno = " + marcadores.turnoText) , marcadorStyle);
+			GUI.Label (new Rect (Screen.height/6,Screen.height/9 ,200,40), ("Turno = " + marcadores.turnoText) , marcadorStyle);
 			
 			// para que desaparezca el  mensaje error
 			//GUI.Label (new Rect (80,10,200,20), ("" + marcadores.contadorError),marcadorStyle);
@@ -495,7 +535,7 @@ public class MenuController : MonoBehaviour
 			//GUI.Label (new Rect ( Screen.100,400,200,20), ("Blanco : " + marcadores.puntajeBlanco),marcadorStyle);
 			//GUI.Label (new Rect ( Screen.100,450,200,20), ("Rojo : " + marcadores.puntajeRojo),marcadorStyle);
 			GUI.Label (new Rect ( Screen.width/10,Screen.height/6 , Screen.width/10,Screen.width/10), ("Blanco : " + marcadores.puntajeBlanco),marcadorStyle);
-			GUI.Label (new Rect ( Screen.width/10,Screen.height/6 +50, Screen.width/8,20), ("Rojo : " + marcadores.puntajeRojo),marcadorStyle);
+			GUI.Label (new Rect ( Screen.width/10,Screen.height/6 + Screen.width/20 , Screen.width/8,20), ("Rojo : " + marcadores.puntajeRojo),marcadorStyle);
 
 
 			// Evento a llamar al apretar el boton de atras de android
@@ -514,6 +554,11 @@ public class MenuController : MonoBehaviour
 		}
 
 	}
+
+
+
+
+
 
 	// Destruye las fichas al salir del juego
 	void destruirFichas()

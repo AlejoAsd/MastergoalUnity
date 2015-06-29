@@ -942,7 +942,7 @@ public class PlayerController : MonoBehaviour
 			(destinoX == 0 || destinoX == (alto - 1)) &&
 			(destinoY >= arcoOffset || destinoY <= arcoOffset + anchoArco))
 		{
-			mensaje = "Los jugadores \n no pueden entrar al arco";
+			mensaje = "Los jugadores  no pueden entrar \n al arco";
 			mensajeError(mensaje);
 			return false;
 		}
