@@ -1464,6 +1464,9 @@ public class PlayerController : MonoBehaviour
 	[RPC]
 	void restartPieces()
 	{
+		// Resetear el contador de turnos
+		cantidadTurnos = 1;
+
 		// Inicializo la matriz
 		initializeMatrix();
 		
