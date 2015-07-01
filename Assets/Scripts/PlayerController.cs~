@@ -215,34 +215,6 @@ public class Estado
 
 	private const int infinito = 1000000000;
 	
-	private enum PesoAI
-	{
-		Ball_advance,
-		Pl_ball_dist_1,
-		Pl_ball_dist_2,
-		Pl_ball_dist_3,
-		Pl_advance_1,
-		Pl_advance_2,
-		Pl_advance_3,
-		Pl_too_close_border,
-		Pl_keeper_in_area,
-		Op_ball_dist_1,
-		Op_ball_dist_2,
-		Op_ball_dist_3,
-		Op_advance_1,
-		Op_advance_2,
-		Op_advance_3,
-		Op_too_close_border,
-		Op_keeper_in_area,
-		Closer_to_ball,
-		Neutral_sqr,
-		Special_sqr,
-		Pls_too_close,
-		Pls_too_far,
-		Ops_too_close,
-		Ops_too_far
-	}
-	
 	public Estado(BoardCell[,] board, int nivel, int alto, int ancho, Equipo equipo)
 	{
 		this.board = board;
@@ -344,7 +316,7 @@ public class Estado
 				{
 					jugadores[i] = board[destinoX, destinoY];
 				}
-				else if (equipo == turno && 
+				else if (equipo != turno && 
 				         oponentes[i].x == fichaX && 
 				         oponentes[i].y == fichaY)
 				{
@@ -393,20 +365,37 @@ public class Estado
 		}
 		else
 		{
-			r = 2 * (System.Math.Abs(alto / 2 - pelota.x) * (pelota.equipo == equipo ? -1 : 1));
+			r = 4 * (System.Math.Abs(alto / 2 - pelota.x) * (pelota.equipo == equipo ? -1 : 1));
 		}
-		// Intentar reducir la distancia del jugador a la pelota
+		// Hacer que salga de las esquinas
+		//r += System.Math.Abs(alto / 2 - pelota.x) / 3 * System.Math.Abs(ancho / 2 - pelota.y);
+		// Reducir la distancia del jugador a la pelota
 		int min = infinito;
 		int d = 0;
+		int t = 0;
 		for (int i = 0; i < cantidadFichas; i++)
 		{
 			d = jugadores[i].distancia(pelota);
+			// Tratar de siempre acortar la distancia de los jugadores
+			t += d;
+			// Dar prioridad al jugador mas cercano
 			if (d < min)
 			{
 				min = d;
 			}
+			// Sacar al arquero del area no es conveniente
+			if (jugadores[i].esArquero(false))
+			{
+				r += jugadores[i].area ? 5 : 0;
+			}
+			// Sacar al arquero oponente del area si es conveniente
+			if (oponentes[i].esArquero(false))
+			{
+				r += oponentes[i].area ? 0 : 5;
+			}
 		}
-		r -= d;
+		r -= d * 3;
+		r -= t;
 		return r;
 	}
 }
@@ -447,7 +436,7 @@ public class PlayerController : MonoBehaviour
 	// Informacion sobre el turno
 	public static Equipo turno = Equipo.Blanco;
 	static bool jugadaEspecial = false;
-	static int contadorTurnos = 0;
+	static int cantidadTurnos = 0;
 	static int pases = 0;
 	static int pasesMaximos = 4;
 
@@ -458,20 +447,17 @@ public class PlayerController : MonoBehaviour
 	// Tag de la ficha seleccionada
 	private string selected = null;
 
-	// Marcadores del juego
-	public static int marcador1, marcador2;
-
 	// Indica el fin del juego
 	public static bool end = false;
     
 	void Start()
 	{
-		marcador1 = 0;
-		marcador2 = 0;
+		marcadores.puntajeBlanco = 0;
+		marcadores.puntajeRojo = 0;
 		jugadaEspecial = false;
 		pases = 0;
 		turno = Equipo.Blanco;
-		contadorTurnos = 1;
+		cantidadTurnos = 1;
 		initializeMatrix();
 	}
 
@@ -699,7 +685,8 @@ public class PlayerController : MonoBehaviour
 				for (int j = 1; j <= 5 && b; j++)
 				{
 					id = "P" + i + "F" + j;
-					if (GameObject.FindWithTag(id).GetComponent<MatrixAttributes>().x == jugada.fichaX &&
+					if (GameObject.FindWithTag(id) != null && 
+						GameObject.FindWithTag(id).GetComponent<MatrixAttributes>().x == jugada.fichaX &&
 					    GameObject.FindWithTag(id).GetComponent<MatrixAttributes>().y == jugada.fichaY)
 					{
 						selectDeselectPiece(id);
@@ -799,7 +786,6 @@ public class PlayerController : MonoBehaviour
 				}
 			}
 		}
-		imprimirTablero();
 	}
 
 	#region AI
@@ -871,8 +857,6 @@ public class PlayerController : MonoBehaviour
 						Jugada jugadaJugador = new Jugada(estado.jugadores[j].x, estado.jugadores[j].y, djx, djy);
 						jugadas.Add(jugadaJugador);
 						estado.mover(equipo, jugadaJugador, false);
-						//Debug.Log("+Piece " + j + " " + djx + "," + djy + " (" + jx + ";" + jy + ")");
-						//imprimirTablero();
 						// En caso de ser un pase de pelota, iterar en base a esta
 						if (estado.pelota.tieneInfluencia(equipo, true))
 						{
@@ -948,8 +932,6 @@ public class PlayerController : MonoBehaviour
 					Jugada jugadaPelota = new Jugada(estado.pelota.x, estado.pelota.y, dpx, dpy);
 					jugadas.Add(jugadaPelota);
 					estado.mover(equipo, jugadaPelota, false);
-					/*Debug.Log("+Ball (" + iter + ") " + dpx + "," + dpy);
-					imprimirTablero();*/
 					// En caso de no poder seguir jugando, bajar un nivel
 					if (!estado.pelota.tieneInfluencia(equipo, true) || jugadas.Count >= 5)
 					{
@@ -968,6 +950,8 @@ public class PlayerController : MonoBehaviour
 						{
 							terminar = true;
 							pases -= 1;
+							estado.mover(equipo, jugadaPelota, true);
+							jugadas.Remove(jugadaPelota);
 							return valor;
 						}
 						else if (valor > alfa)
@@ -1021,7 +1005,7 @@ public class PlayerController : MonoBehaviour
 		if (destinoX < 0 || destinoX >= alto ||
 		    destinoY < 0 || destinoY >= ancho || 
 		    ((destinoX == 0 || destinoX == (alto - 1)) &&
-		    (destinoY < arcoOffset || destinoY > arcoOffset + anchoArco)))
+		    (destinoY < arcoOffset || destinoY >= arcoOffset + anchoArco)))
 		{
 			if (verbose)
 			{
@@ -1086,7 +1070,7 @@ public class PlayerController : MonoBehaviour
 		}
         
 		// Asegurar que la pelota no termine del lado del jugador que saca en el primer turno
-		if (contadorTurnos == 1 &&
+		if (cantidadTurnos == 1 &&
 			pases >= pasesMaximos - 1 &&
 			turno == destino.equipo)
 		{
@@ -1122,7 +1106,14 @@ public class PlayerController : MonoBehaviour
 		{
 			if (verbose)
 			{
-				mensaje = "Mover hasta dos casillas";
+				if (maximoMovimientos == 2)
+				{
+					mensaje = "Mover hasta dos casillas";
+				}
+				else if (maximoMovimientos == 4)
+				{
+					mensaje = "Mover hasta cuatro casillas";
+				}
 				mensajeError(mensaje);
 			}
 			return false;
@@ -1414,14 +1405,12 @@ public class PlayerController : MonoBehaviour
 	{
 		if (equipo == Equipo.Blanco)
 		{
-			marcador1 += 1;
-			marcadores.puntajeBlanco = marcador1;
+			marcadores.puntajeBlanco += 1;
 			turno = Equipo.Rojo;
 		}
 		else
 		{
-			marcador2 += 1;
-			marcadores.puntajeRojo = marcador2;
+			marcadores.puntajeRojo += 1;
 			turno = Equipo.Blanco;
 		}
 	}
@@ -1523,7 +1512,7 @@ public class PlayerController : MonoBehaviour
 	{
 		if (isGoal())
 		{
-			if (marcador1 + marcador2 == 2)
+			if (marcadores.puntajeBlanco + marcadores.puntajeRojo == 2)
 			{
 				if (MenuController.screenValue == Constants.GAMEMP)
 				{
@@ -1586,10 +1575,10 @@ public class PlayerController : MonoBehaviour
 	{
 		jugadaEspecial = false;
 		pases = 0;
-		contadorTurnos += 1;
+		cantidadTurnos += 1;
 
 		// Si se llego a los 50 turnos termiar el partido con el puntaje actual
-		if (contadorTurnos > 50)
+		if (cantidadTurnos > 50)
 		{
 			if (MenuController.screenValue == Constants.GAMEMP)
 			{
