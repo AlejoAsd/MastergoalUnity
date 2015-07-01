@@ -25,6 +25,8 @@ public class marcadores
 	public static float contFloat = 45;
 	public static float contadorErrorFloat = 3;
 	public static int contadorError = 4;
+
+	public static int ajusteResolucion = 0;
 	
 }
 
@@ -61,7 +63,13 @@ public class MenuController : MonoBehaviour
 	public GUIStyle customStyle;
 	public GUIStyle customButton;
 	public GUIStyle customBox;
-	public GUIStyle marcadorStyle;
+	public GUIStyle marcadorStyle ;
+	
+	//= Mathf.Min(Mathf.FloorToInt(Screen.width * fontSize/1000), Mathf.FloorToInt(Screen.height * fontSize/1000))
+
+
+
+
 
 	/**************************** Funciones de red ****************************/ 
 	//Inicializar servidor
@@ -150,6 +158,7 @@ public class MenuController : MonoBehaviour
 		SpawnPlayer1();
 		SpawnPlayer2();
 		SpawnBall();
+
 	}
 
 	#region Spawns Singleplayer
@@ -313,6 +322,7 @@ public class MenuController : MonoBehaviour
 	void generateTitle()
 	{
 		GUI.Label(new Rect(0, 10, Screen.width, 100), "MASTERGOAL", customStyle);
+
 	}
 
 	void OnGUI()
@@ -469,19 +479,32 @@ public class MenuController : MonoBehaviour
 
 		}
 
+
+
 		/**************************** Pantalla de Juego ****************************/
 		if (screenValue == Constants.GAMESP || screenValue == Constants.GAMEMP)
 		{
+			//marcadorStyle=  Mathf.Min(Mathf.FloorToInt(Screen.width * fontSize/1000), Mathf.FloorToInt(Screen.height * fontSize/1000));
+				
+			if(marcadores.ajusteResolucion==0)
+			{
+				marcadorStyle.fontSize = Mathf.Min(Mathf.FloorToInt(Screen.width * marcadorStyle.fontSize/1080), Mathf.FloorToInt(Screen.height * marcadorStyle.fontSize/1920));
+				marcadores.ajusteResolucion=1;
+			}
+
+
 
 			update();// actualiza el valor del cronometro
 			
 			if (marcadores.ShowLabel)
 			{// esto es para los mensajes de error
-				GUI.Label(new Rect(100, 10, 200, 40), marcadores.errorText, marcadorStyle);
+				GUI.Label(new Rect(Screen.width/10, 10, 200, 40), marcadores.errorText, marcadorStyle);
 			}
 			
 			// muestra el turno actual
-			GUI.Label(new Rect(400, 200, 200, 40), ("Turno = " + marcadores.turnoText), marcadorStyle);
+			//GUI.Label (new Rect (400,200,200,40), ("Turno = " + marcadores.turnoText) , marcadorStyle);
+
+			GUI.Label (new Rect (Screen.height/6,Screen.height/9 ,200,40), ("Turno = " + marcadores.turnoText) , marcadorStyle);
 			
 			// para que desaparezca el  mensaje error
 			//GUI.Label (new Rect (80,10,200,20), ("" + marcadores.contadorError),marcadorStyle);
@@ -490,8 +513,10 @@ public class MenuController : MonoBehaviour
 			//GUI.Label (new Rect (80,10,200,20), ("" + marcadores.contador),marcadorStyle);
 			
 			// esto es para los puntajes
-			GUI.Label(new Rect(100, 400, 200, 20), ("Blanco : " + marcadores.puntajeBlanco), marcadorStyle);
-			GUI.Label(new Rect(100, 450, 200, 20), ("Rojo : " + marcadores.puntajeRojo), marcadorStyle);
+			//GUI.Label (new Rect ( Screen.100,400,200,20), ("Blanco : " + marcadores.puntajeBlanco),marcadorStyle);
+			//GUI.Label (new Rect ( Screen.100,450,200,20), ("Rojo : " + marcadores.puntajeRojo),marcadorStyle);
+			GUI.Label (new Rect ( Screen.width/10,Screen.height/6 , Screen.width/10,Screen.width/10), ("Blanco : " + marcadores.puntajeBlanco),marcadorStyle);
+			GUI.Label (new Rect ( Screen.width/10,Screen.height/6 + Screen.width/20 , Screen.width/8,20), ("Rojo : " + marcadores.puntajeRojo),marcadorStyle);
 
 
 			// Evento a llamar al apretar el boton de atras de android
