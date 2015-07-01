@@ -179,7 +179,7 @@ public class BoardCell
 	// Distancia manhattan con respecto a otra ficha
 	public int distancia(BoardCell ficha)
 	{
-		return System.Math.Abs(x - ficha.x) + System.Math.Abs(y - ficha .y);
+		return System.Math.Abs(x - ficha.x) > System.Math.Abs(y - ficha .y) ? System.Math.Abs(x - ficha.x) : System.Math.Abs(y - ficha .y);
 	}
 }
 
@@ -365,7 +365,7 @@ public class Estado
 		}
 		else
 		{
-			r = 4 * (System.Math.Abs(alto / 2 - pelota.x) * (pelota.equipo == equipo ? -1 : 1));
+			r = 8 * (System.Math.Abs(alto / 2 - pelota.x) * (pelota.equipo == equipo ? -1 : 1));
 		}
 		// Hacer que salga de las esquinas
 		//r += System.Math.Abs(alto / 2 - pelota.x) / 3 * System.Math.Abs(ancho / 2 - pelota.y);
@@ -379,7 +379,7 @@ public class Estado
 			// Tratar de siempre acortar la distancia de los jugadores
 			t += d;
 			// Dar prioridad al jugador mas cercano
-			if (d < min)
+			if (d < min && d > 1)
 			{
 				min = d;
 			}
