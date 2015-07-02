@@ -12,6 +12,7 @@ public class Tutorial : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+
 		if (button.textura == nroSlide) {
 			GetComponent<RawImage> ().enabled = true;
 		}

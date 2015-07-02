@@ -521,7 +521,7 @@ public class PlayerController : MonoBehaviour
 			Network.Destroy(GetComponent<NetworkView>().viewID);
 		}
 
-		if (Input.GetKeyUp(KeyCode.Return))
+		if (Input.GetKeyDown(KeyCode.Return))
 		{
 			imprimirTablero();
 		}

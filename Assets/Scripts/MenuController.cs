@@ -7,8 +7,11 @@ static class Constants
 	public const int SERVERLIST = 1;
 	public const int LEVELSELECTIONSP = 2;
 	public const int LEVELSELECTIONMP = 3;
-	public const int GAMESP = 4;
-	public const int GAMEMP = 5;
+	public const int LEVELSELECTIONMPOFFLINE = 4;
+	public const int GAMESP = 5;
+	public const int GAMEMP = 6;
+	public const int GAMEMPOFFLINE = 7;
+	public const int MAINMP = 8;
 	public const int TUTORIAL = 9;
 }
 
@@ -62,11 +65,6 @@ public class MenuController : MonoBehaviour
 	public GUIStyle customBox;
 	public GUIStyle marcadorStyle ;
 	
-	//= Mathf.Min(Mathf.FloorToInt(Screen.width * fontSize/1000), Mathf.FloorToInt(Screen.height * fontSize/1000))
-
-
-
-
 
 	/**************************** Funciones de red ****************************/ 
 	//Inicializar servidor
@@ -130,7 +128,7 @@ public class MenuController : MonoBehaviour
 		return "Juegol" + number + "-Nivel" + level;
 	}
 
-	public void update()
+	/*public void update()
 	{
 		marcadores.contFloat -= Time.deltaTime;
 		marcadores.contador = (int)marcadores.contFloat;
@@ -148,7 +146,7 @@ public class MenuController : MonoBehaviour
 		{
 			marcadores.contador = 45;
 		}
-	}
+	}*/
 
 	void InitializeSP()
 	{
@@ -337,34 +335,27 @@ public class MenuController : MonoBehaviour
 				screenValue = Constants.LEVELSELECTIONSP;
 			}
 
-			// Boton Crear Partida Multijugador
-			if (GUI.Button(new Rect(X_INICIAL, Y_INICIAL + BTN_HEIGHT + 30, BTN_WIDTH, BTN_HEIGHT), "Crear Partida", customButton))
+			// Boton Crear Partida Multijugador Offline
+			if (GUI.Button(new Rect(X_INICIAL, Y_INICIAL + BTN_HEIGHT + 30, BTN_WIDTH, BTN_HEIGHT), "Multijugador Offline", customButton))
 			{
-				screenValue = Constants.LEVELSELECTIONMP;
+				screenValue = Constants.LEVELSELECTIONMPOFFLINE;
 			}
 
 			// Boton Buscar Partida
-			if (GUI.Button(new Rect(X_INICIAL, Y_INICIAL + 2 * BTN_HEIGHT + 60, BTN_WIDTH, BTN_HEIGHT), "Buscar Partida", customButton))
+			if (GUI.Button(new Rect(X_INICIAL, Y_INICIAL + 2 * BTN_HEIGHT + 60, BTN_WIDTH, BTN_HEIGHT), "Multijugador Online", customButton))
 			{
-				screenValue = Constants.SERVERLIST;
-				RefreshHostList();
+				screenValue = Constants.MAINMP;
 			}
 
 			if (GUI.Button(new Rect(X_INICIAL, Y_INICIAL + 3 * BTN_HEIGHT + 90, BTN_WIDTH, BTN_HEIGHT), "Tutorial", customButton))
 			{
 				screenValue = Constants.TUTORIAL;
 			}
-		
-			// Evento a llamar al apretar el boton de atras de android
-			if (Input.GetKeyDown(KeyCode.Escape))
-			{ 
-				Application.Quit(); 
-			}
 
 		} 
 
 		/**************************** Pantalla de Seleccion de nivel ****************************/
-		if (screenValue == Constants.LEVELSELECTIONSP || screenValue == Constants.LEVELSELECTIONMP)
+		if (screenValue == Constants.LEVELSELECTIONSP || screenValue == Constants.LEVELSELECTIONMP || screenValue == Constants.LEVELSELECTIONMPOFFLINE)
 		{
 
 			generateTitle();
@@ -384,6 +375,11 @@ public class MenuController : MonoBehaviour
 					StartServer();
 					screenValue = Constants.GAMEMP;
 				}
+				else if (screenValue == Constants.LEVELSELECTIONMPOFFLINE)
+				{
+					InitializeSP();
+					screenValue = Constants.GAMEMPOFFLINE;
+				}
 			}
 			
 			// Boton Nivel 2
@@ -400,6 +396,11 @@ public class MenuController : MonoBehaviour
 					gameName = generateRoomName(level);
 					StartServer();
 					screenValue = Constants.GAMEMP;
+				}
+				else if (screenValue == Constants.LEVELSELECTIONMPOFFLINE)
+				{
+					InitializeSP();
+					screenValue = Constants.GAMEMPOFFLINE;
 				}
 			}
 
@@ -418,12 +419,31 @@ public class MenuController : MonoBehaviour
 					StartServer();
 					screenValue = Constants.GAMEMP;
 				}
+				else if (screenValue == Constants.LEVELSELECTIONMPOFFLINE)
+				{
+					InitializeSP();	
+					screenValue = Constants.GAMEMPOFFLINE;
+				}
 			}
 
-			// Evento a llamar al apretar el boton de atras de android
-			if (Input.GetKeyUp(KeyCode.Escape))
-			{ 
-				screenValue = Constants.MAIN; 
+		}
+
+		/**************************** Pantalla de Multijugador Online ****************************/
+
+		if (screenValue == Constants.MAINMP) {
+			generateTitle();
+
+			// Boton Crear Partida Multijugador Online
+			if (GUI.Button(new Rect(X_INICIAL, Y_INICIAL, BTN_WIDTH, BTN_HEIGHT), "Crear Partida", customButton))
+			{
+				screenValue = Constants.LEVELSELECTIONMP;
+			}
+			
+			// Boton Buscar Partida Multijugador Online
+			if (GUI.Button(new Rect(X_INICIAL, Y_INICIAL + BTN_HEIGHT + 30, BTN_WIDTH, BTN_HEIGHT), "Buscar Partida", customButton))
+			{
+				screenValue = Constants.SERVERLIST;
+				RefreshHostList();
 			}
 
 		}
@@ -431,7 +451,6 @@ public class MenuController : MonoBehaviour
 		/**************************** Pantalla de Lista de Servidores ****************************/
 		if (screenValue == Constants.SERVERLIST)
 		{
-
 			generateTitle();
 
 			// ScrollView con lista de servidores
@@ -467,34 +486,26 @@ public class MenuController : MonoBehaviour
 				RefreshHostList();
 			}
 
-			// Evento a llamar al apretar el boton de atras de android
-			if (Input.GetKeyUp(KeyCode.Escape))
-			{ 
-				screenValue = Constants.MAIN; 
-			}
-
 		}
 
-
-
 		/**************************** Pantalla de Juego ****************************/
-		if (screenValue == Constants.GAMESP || screenValue == Constants.GAMEMP)
+		if (screenValue == Constants.GAMESP || screenValue == Constants.GAMEMP || screenValue == Constants.GAMEMPOFFLINE)
 		{
 			//marcadorStyle=  Mathf.Min(Mathf.FloorToInt(Screen.width * fontSize/1000), Mathf.FloorToInt(Screen.height * fontSize/1000));
-				
+			
 			/*if (marcadores.ajusteResolucion == 0)
 			{
 				marcadorStyle.fontSize = Mathf.Min(Mathf.FloorToInt(Screen.width * marcadorStyle.fontSize / 1080), Mathf.FloorToInt(Screen.height * marcadorStyle.fontSize / 1920));
 				marcadores.ajusteResolucion = 1;
 			}*/
-
+			
 			//update();// actualiza el valor del cronometro
 			
 			/*if (marcadores.ShowLabel)
 			{// esto es para los mensajes de error
 				GUI.Label(new Rect(Screen.width / 10, 10, 200, 40), marcadores.errorText, marcadorStyle);
 			}*/
-
+			
 			// para que desaparezca el  mensaje error
 			//GUI.Label (new Rect (80,10,200,20), ("" + marcadores.contadorError),marcadorStyle);
 			
@@ -507,29 +518,42 @@ public class MenuController : MonoBehaviour
 			// Muestro los puntajes
 			GUI.Label(new Rect(10, 60, 200, 20), ("Blanco : " + marcadores.puntajeBlanco), marcadorStyle);
 			GUI.Label(new Rect(10, 110, 200, 20), ("Rojo : " + marcadores.puntajeRojo), marcadorStyle);
-
-			// Evento a llamar al apretar el boton de atras de android
-			if (Input.GetKeyUp(KeyCode.Escape) && screenValue == Constants.GAMEMP)
-			{ 
-				Network.Disconnect();
-				MasterServer.UnregisterHost();
-				screenValue = Constants.MAIN;
-				destruirFichas();
-			}
-			else if (Input.GetKeyUp(KeyCode.Escape) && screenValue == Constants.GAMESP)
-			{
-				screenValue = Constants.MAIN;
-				destruirFichas();
-			}
 		}
 
-		if (screenValue == Constants.TUTORIAL) {
-			if (Input.GetKeyUp(KeyCode.Escape))
-			{ 
-				screenValue = Constants.MAIN; 
+	}
+
+	void Update(){
+		// Al presionar el boton atras de android
+		if (Input.GetKeyUp (KeyCode.Escape)) {
+			switch (screenValue){
+				case Constants.MAIN:
+					Application.Quit();
+					break;
+				case Constants.LEVELSELECTIONMP:
+					screenValue = Constants.MAINMP;
+					break;
+				case Constants.SERVERLIST:
+					screenValue = Constants.MAINMP;
+					break;
+				case Constants.GAMESP:
+					screenValue = Constants.MAIN;
+					destruirFichas();
+					break;
+				case Constants.GAMEMPOFFLINE:
+					screenValue = Constants.MAIN;
+					destruirFichas();
+					break;
+				case Constants.GAMEMP:
+					Network.Disconnect();
+					MasterServer.UnregisterHost();
+					screenValue = Constants.MAIN;
+					destruirFichas();
+					break;
+				default:
+					screenValue = Constants.MAIN;
+					break;
 			}
 		}
-
 	}
 
 	// Destruye las fichas al salir del juego
