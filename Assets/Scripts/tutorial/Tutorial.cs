@@ -1,17 +1,18 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI; 
-public class nueve : MonoBehaviour {
 
-	
+public class Tutorial : MonoBehaviour {
+
+	public int nroSlide;
+
 	void Start () {
 		if (button.textura == -1){GetComponent<RawImage> ().enabled = false;}
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if (button.textura == 8)
-		{
+		if (button.textura == nroSlide) {
 			GetComponent<RawImage> ().enabled = true;
 		}
 		else{
