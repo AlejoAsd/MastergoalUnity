@@ -16,7 +16,7 @@ public class marcadores
 {
 	
 	public static string errorText = "Error";// solo reemplazar esto para tener los mensajes
-	public static string turnoText = "Blanca";
+	public static string turnoText = "Blanco";
 	public static int puntajeRojo = 0;
 	public static int puntajeBlanco = 0;
 	public static bool ShowLabel = false;
@@ -502,7 +502,7 @@ public class MenuController : MonoBehaviour
 			//GUI.Label (new Rect (80,10,200,20), ("" + marcadores.contador),marcadorStyle);
 
 			// Muestro el turno
-			GUI.Label(new Rect(10, 10, 200, 40), ("Turno = " + marcadores.turnoText), marcadorStyle);
+			GUI.Label(new Rect(10, 10, 200, 40), ("Turno : " + marcadores.turnoText), marcadorStyle);
 
 			// Muestro los puntajes
 			GUI.Label(new Rect(10, 60, 200, 20), ("Blanco : " + marcadores.puntajeBlanco), marcadorStyle);

@@ -457,6 +457,7 @@ public class PlayerController : MonoBehaviour
 		jugadaEspecial = false;
 		pases = 0;
 		turno = Equipo.Blanco;
+		marcadores.turnoText = "Blanco";
 		cantidadTurnos = 1;
 		initializeMatrix();
 	}
@@ -1399,11 +1400,11 @@ public class PlayerController : MonoBehaviour
 		setFicha(fichaX, fichaY, TipoFicha.Vacio);
 	}
 
-	// Actualiza el marcador en el cliente y servidor
+	// Actualiza el marcador en el cliente y servidor 1: equipo blanco, 2: equipo rojo
 	[RPC]
-	void refreshScore(Equipo equipo)
+	void refreshScore(int equipo)
 	{
-		if (equipo == Equipo.Blanco)
+		if (equipo == 1)
 		{
 			marcadores.puntajeBlanco += 1;
 			turno = Equipo.Rojo;
@@ -1435,11 +1436,11 @@ public class PlayerController : MonoBehaviour
 				// Aumento el marcador del jugador 1
 				if (MenuController.screenValue == Constants.GAMEMP)
 				{
-					GetComponent<NetworkView>().RPC("refreshScore", RPCMode.All, Equipo.Blanco);
+					GetComponent<NetworkView>().RPC("refreshScore", RPCMode.All, 1);
 				}
 				else if (MenuController.screenValue == Constants.GAMESP)
 				{
-					refreshScore(Equipo.Blanco);
+					refreshScore(1);
 				}
 				return true;
 			}
@@ -1448,11 +1449,11 @@ public class PlayerController : MonoBehaviour
 				// Aumento el marcador del jugador 2
 				if (MenuController.screenValue == Constants.GAMEMP)
 				{
-					GetComponent<NetworkView>().RPC("refreshScore", RPCMode.All, Equipo.Rojo);
+					GetComponent<NetworkView>().RPC("refreshScore", RPCMode.All, 2);
 				}
 				else if (MenuController.screenValue == Constants.GAMESP)
 				{
-					refreshScore(Equipo.Rojo);
+					refreshScore(2);
 				}
 				return true;
 			}
@@ -1595,13 +1596,13 @@ public class PlayerController : MonoBehaviour
 		else if (turno == Equipo.Blanco)
 		{
 			turno = Equipo.Rojo;
-			marcadores.turnoText= "Roja";
+			marcadores.turnoText= "Rojo";
 			marcadores.contador = 45;
 		}
 		else if (turno == Equipo.Rojo)
 		{
 			turno = Equipo.Blanco;
-			marcadores.turnoText= "Blanca";
+			marcadores.turnoText= "Blanco";
 			marcadores.contador = 45;
 		}
 	}
