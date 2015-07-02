@@ -506,12 +506,12 @@ public class PlayerController : MonoBehaviour
 
 	void Update()
 	{   
-		if (MenuController.screenValue == Constants.GAMESP && this.tag != ID_P1F1)
+		if ((MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE) && this.tag != ID_P1F1)
 		{
 			return;
 		}
 
-		if (MenuController.screenValue == Constants.GAMESP || (MenuController.screenValue == Constants.GAMEMP && GetComponent<NetworkView>().isMine))
+		if (MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE || (MenuController.screenValue == Constants.GAMEMP && GetComponent<NetworkView>().isMine))
 		{
 			InputMovement();
 		}
@@ -556,6 +556,11 @@ public class PlayerController : MonoBehaviour
 					setEnd(false);
 					MenuController.destruirFichas();
 				}
+				else if (MenuController.screenValue == Constants.GAMEMPOFFLINE)
+				{
+					setEnd(false);
+					MenuController.destruirFichas();
+				}
 				MenuController.screenValue = Constants.MAIN; 
 			}
 		}
@@ -576,7 +581,8 @@ public class PlayerController : MonoBehaviour
 					{
 						string id;
 						if (turno == Equipo.Blanco && 
-						    (MenuController.screenValue == Constants.GAMESP || 
+						    (MenuController.screenValue == Constants.GAMESP ||
+						  	 MenuController.screenValue == Constants.GAMEMPOFFLINE ||
 						    (MenuController.screenValue == Constants.GAMEMP && Network.isServer)) && 
 						    hit.collider.tag == (id = "P1F" + i))
 						{
@@ -585,6 +591,7 @@ public class PlayerController : MonoBehaviour
 						}
 						else if (turno == Equipo.Rojo &&
 						         (MenuController.screenValue == Constants.GAMESP || 
+						 		  MenuController.screenValue == Constants.GAMEMPOFFLINE ||
 						         (MenuController.screenValue == Constants.GAMEMP && Network.isClient)) && 
 						         hit.collider.tag == (id = "P2F" + i))
 						{
@@ -647,12 +654,14 @@ public class PlayerController : MonoBehaviour
 				GameObject.FindWithTag(tag).GetComponent<Renderer>().material.color = Color.yellow;
 			}
 			else if ((MenuController.screenValue == Constants.GAMEMP && Network.isServer) ||
-			         (MenuController.screenValue == Constants.GAMESP && turno == Equipo.Blanco))
+			         (MenuController.screenValue == Constants.GAMESP && turno == Equipo.Blanco) ||
+			         (MenuController.screenValue == Constants.GAMEMPOFFLINE && turno == Equipo.Blanco))
 			{
 				GameObject.FindWithTag(tag).GetComponent<Renderer>().material.color = Color.white;
 			}
 			else if ((MenuController.screenValue == Constants.GAMEMP && Network.isClient) ||
-			         (MenuController.screenValue == Constants.GAMESP && turno == Equipo.Rojo))
+			         (MenuController.screenValue == Constants.GAMESP && turno == Equipo.Rojo) ||
+			         (MenuController.screenValue == Constants.GAMEMPOFFLINE && turno == Equipo.Rojo))
 			{
 				GameObject.FindWithTag(tag).GetComponent<Renderer>().material.color = Color.red;
 			}
@@ -719,7 +728,7 @@ public class PlayerController : MonoBehaviour
 			{
 				GetComponent<NetworkView>().RPC("setMatrix", RPCMode.All, fichaX, fichaY, destinoX, destinoY);
 			}
-			else if (MenuController.screenValue == Constants.GAMESP)
+			else if (MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE)
 			{
 				setMatrix(fichaX, fichaY, destinoX, destinoY);
 			}
@@ -730,7 +739,7 @@ public class PlayerController : MonoBehaviour
 				{
 					GetComponent<NetworkView>().RPC("moverPelotaEnServidorYCliente", RPCMode.All, destinoX, destinoY, posicion);
 				}
-				else if (MenuController.screenValue == Constants.GAMESP)
+				else if (MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE)
 				{
 					moverPelotaEnServidorYCliente(destinoX, destinoY, posicion);
 				}
@@ -780,7 +789,7 @@ public class PlayerController : MonoBehaviour
 					{
 						GetComponent<NetworkView>().RPC("cambiarTurno", RPCMode.All);
 					}
-					else if (MenuController.screenValue == Constants.GAMESP)
+					else if (MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE)
 					{
 						cambiarTurno();
 					}
@@ -1438,7 +1447,7 @@ public class PlayerController : MonoBehaviour
 				{
 					GetComponent<NetworkView>().RPC("refreshScore", RPCMode.All, 1);
 				}
-				else if (MenuController.screenValue == Constants.GAMESP)
+				else if (MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE)
 				{
 					refreshScore(1);
 				}
@@ -1451,7 +1460,7 @@ public class PlayerController : MonoBehaviour
 				{
 					GetComponent<NetworkView>().RPC("refreshScore", RPCMode.All, 2);
 				}
-				else if (MenuController.screenValue == Constants.GAMESP)
+				else if (MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE)
 				{
 					refreshScore(2);
 				}
@@ -1522,7 +1531,7 @@ public class PlayerController : MonoBehaviour
 				{
 					GetComponent<NetworkView>().RPC("setEnd", RPCMode.All, true);
 				}
-				else if (MenuController.screenValue == Constants.GAMESP)
+				else if (MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE)
 				{
 					setEnd(true);
 				}
@@ -1533,7 +1542,7 @@ public class PlayerController : MonoBehaviour
 				{
 					GetComponent<NetworkView>().RPC("restartPieces", RPCMode.All);
 				}
-				else if (MenuController.screenValue == Constants.GAMESP)
+				else if (MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE)
 				{
 					restartPieces();
 				}
@@ -1588,7 +1597,7 @@ public class PlayerController : MonoBehaviour
 			{
 				GetComponent<NetworkView>().RPC("setEnd", RPCMode.All, true);
 			}
-			else if (MenuController.screenValue == Constants.GAMESP)
+			else if (MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE)
 			{
 				setEnd(true);
 			}
