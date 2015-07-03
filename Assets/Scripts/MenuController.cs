@@ -109,6 +109,7 @@ public class MenuController : MonoBehaviour
 
 	public void OnDisconnectedFromServer()
 	{
+		PlayerController.end = false;
 		destruirFichas();
 		screenValue = Constants.MAIN;
 	}
@@ -117,6 +118,7 @@ public class MenuController : MonoBehaviour
 	{
 		Network.Disconnect();
 		MasterServer.UnregisterHost();
+		PlayerController.end = false;
 		destruirFichas();
 		screenValue = Constants.MAIN;
 	}
@@ -547,16 +549,19 @@ public class MenuController : MonoBehaviour
 					break;
 				case Constants.GAMESP:
 					screenValue = Constants.MAIN;
+					PlayerController.end = false;
 					destruirFichas();
 					break;
 				case Constants.GAMEMPOFFLINE:
 					screenValue = Constants.MAIN;
+					PlayerController.end = false;
 					destruirFichas();
 					break;
 				case Constants.GAMEMP:
 					Network.Disconnect();
 					MasterServer.UnregisterHost();
 					screenValue = Constants.MAIN;
+					PlayerController.end = false;
 					destruirFichas();
 					break;
 				default:
