@@ -452,7 +452,8 @@ public class PlayerController : MonoBehaviour
 
 	// Estilo
 	public GUIStyle customButton;
-    
+	public GUIStyle customText;
+
 	void Start()
 	{
 		marcadores.puntajeBlanco = 0;
@@ -540,14 +541,18 @@ public class PlayerController : MonoBehaviour
 	{
 		if (end)
 		{
+			// Cuadro de resultados
+			GUI.Box(new Rect(50,Screen.height*1/4,Screen.width - 100,Screen.height/2 + Screen.height/12),"");
+
+			// Textos del cuadro
+			GUI.Label(new Rect(100, Screen.height*1/4 + 50, Screen.width - 200, 40), "Resultado Final", customText);
+			GUI.Label(new Rect(100, Screen.height*1/4 + (Screen.height/2 + Screen.height/12)*1/4 + 1/8, Screen.width - 200, 40), "Blanco : " + marcadores.puntajeBlanco,customText);
+			GUI.Label(new Rect(100, Screen.height*1/4 + (Screen.height/2 + Screen.height/12)*1/2, Screen.width - 200, 40), "Rojo : " + marcadores.puntajeRojo,customText);
+
 			// Boton Volver al Menu Principal
-			if (GUI.Button(new Rect(Screen.width / 4, Screen.height / 3 + Screen.width / 6 + 60, Screen.width / 2, Screen.width / 6), "Menu Principal", customButton))
+			if (GUI.Button(new Rect(Screen.width / 4, Screen.height * 3/4 + Screen.height/12 - 50 - Screen.width / 6, Screen.width / 2, Screen.width / 6), "Menu Principal", customButton))
 			{
-				// si es cliente solo cambiar screenValue
-				// si es servidor, cambiar screenValue
-				// luego de que el cliente haya cambiado el screenValue desconectar (atender que al desconectar tanto cliente como servidor van al main)
-				
-				// Mientras tanto si uno aprieta el boton los dos vuelven (cliente servidor)
+				// Para multijugador online si uno aprieta el boton los dos vuelven (cliente servidor)
 				if (MenuController.screenValue == Constants.GAMEMP)
 				{
 					GetComponent<NetworkView>().RPC("setEnd", RPCMode.All, false);
@@ -1532,10 +1537,12 @@ public class PlayerController : MonoBehaviour
 			{
 				if (MenuController.screenValue == Constants.GAMEMP)
 				{
+					GetComponent<NetworkView>().RPC("restartPieces", RPCMode.All);
 					GetComponent<NetworkView>().RPC("setEnd", RPCMode.All, true);
 				}
 				else if (MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE)
 				{
+					restartPieces();
 					setEnd(true);
 				}
 			}

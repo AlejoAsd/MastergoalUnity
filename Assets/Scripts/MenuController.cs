@@ -513,19 +513,21 @@ public class MenuController : MonoBehaviour
 			// muestra el contador
 			//GUI.Label (new Rect (80,10,200,20), ("" + marcadores.contador),marcadorStyle);
 
-			if (screenValue == Constants.GAMEMP){
-				GUI.Label(new Rect(Screen.width/4, 10, 200, 40), gameName, marcadorStyle);
+			if (!PlayerController.end){
+				if (screenValue == Constants.GAMEMP){
+					GUI.Label(new Rect(Screen.width/4, 10, 200, 40), gameName, marcadorStyle);
+				}
+
+				// Muestro el turno
+				if (marcadores.turnoText == "Blanco")
+					GUI.Label(new Rect(Screen.width - 350, 110, 200, 40), ("Turno : " + marcadores.turnoText), marcadorStyle);
+				else
+					GUI.Label(new Rect(Screen.width - 295, 110, 200, 40), ("Turno : " + marcadores.turnoText), marcadorStyle);
+
+				// Muestro los puntajes
+				GUI.Label(new Rect(10, 110, 200, 20), ("Blanco : " + marcadores.puntajeBlanco), marcadorStyle);
+				GUI.Label(new Rect(10, 160, 200, 20), ("Rojo : " + marcadores.puntajeRojo), marcadorStyle);
 			}
-
-			// Muestro el turno
-			if (marcadores.turnoText == "Blanco")
-				GUI.Label(new Rect(Screen.width - 350, 110, 200, 40), ("Turno : " + marcadores.turnoText), marcadorStyle);
-			else
-				GUI.Label(new Rect(Screen.width - 295, 110, 200, 40), ("Turno : " + marcadores.turnoText), marcadorStyle);
-
-			// Muestro los puntajes
-			GUI.Label(new Rect(10, 110, 200, 20), ("Blanco : " + marcadores.puntajeBlanco), marcadorStyle);
-			GUI.Label(new Rect(10, 160, 200, 20), ("Rojo : " + marcadores.puntajeRojo), marcadorStyle);
 		}
 
 	}
