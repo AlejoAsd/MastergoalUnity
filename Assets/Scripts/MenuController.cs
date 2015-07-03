@@ -125,7 +125,7 @@ public class MenuController : MonoBehaviour
 	string generateRoomName(int level)
 	{
 		int number = Random.Range(0, 100);
-		return "Juegol" + number + "-Nivel" + level;
+		return "Juego" + number + "-Nivel" + level;
 	}
 
 	/*public void update()
@@ -469,7 +469,7 @@ public class MenuController : MonoBehaviour
 				for (int i = 0; i < hostList.Length; i++)
 				{	
 
-					if (GUI.Button(new Rect(0, (110 * i), Screen.width * 3 / 4 - 20, 80), hostList[i].gameName))
+					if (GUI.Button(new Rect(0, (110 * i), Screen.width * 3 / 4 - 20, 80), hostList[i].gameName, customButton))
 					{						
 						// Obtengo el nivel
 						level = (int)char.GetNumericValue((hostList[i].gameName)[(hostList[i].gameName).Length - 1]);

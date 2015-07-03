@@ -449,6 +449,9 @@ public class PlayerController : MonoBehaviour
 
 	// Indica el fin del juego
 	public static bool end = false;
+
+	// Estilo
+	public GUIStyle customButton;
     
 	void Start()
 	{
@@ -538,7 +541,7 @@ public class PlayerController : MonoBehaviour
 		if (end)
 		{
 			// Boton Volver al Menu Principal
-			if (GUI.Button(new Rect(Screen.width / 4, Screen.height / 3 + Screen.width / 6 + 60, Screen.width / 2, Screen.width / 6), "Volver al Menu Principal"))
+			if (GUI.Button(new Rect(Screen.width / 4, Screen.height / 3 + Screen.width / 6 + 60, Screen.width / 2, Screen.width / 6), "Menu Principal", customButton))
 			{
 				// si es cliente solo cambiar screenValue
 				// si es servidor, cambiar screenValue
