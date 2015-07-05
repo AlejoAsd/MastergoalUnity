@@ -734,7 +734,7 @@ public class PlayerController : MonoBehaviour
 			posicion = GameObject.Find(destinoX.ToString() + destinoY.ToString()).GetComponent<MeshCollider>().transform.position;
 		}
 		// Verifico si es un movimiento valido
-		if (validarMovimiento(fichaX, fichaY, destinoX, destinoY))
+		if (validarMovimiento(fichaX, fichaY, destinoX, destinoY, true))
 		{
 			// Actualizar los valores de la matriz
 			if (MenuController.screenValue == Constants.GAMEMP)
@@ -1018,7 +1018,7 @@ public class PlayerController : MonoBehaviour
 	}
 
 	// Verifica si el movimiento a realizar es valido
-	bool validarMovimiento(int fichaX, int fichaY, int destinoX, int destinoY, bool verbose=true)
+	bool validarMovimiento(int fichaX, int fichaY, int destinoX, int destinoY, bool verbose )
 	{
 		string mensaje = string.Empty;
 		int arcoOffset = (ancho - anchoArco) / 2;

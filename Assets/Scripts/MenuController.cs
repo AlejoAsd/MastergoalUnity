@@ -64,6 +64,8 @@ public class MenuController : MonoBehaviour
 	public GUIStyle customButton;
 	public GUIStyle customBox;
 	public GUIStyle marcadorStyle ;
+
+	bool isPaused= false;
 	
 
 	/**************************** Funciones de red ****************************/ 
@@ -514,6 +516,77 @@ public class MenuController : MonoBehaviour
 			
 			// muestra el contador
 			//GUI.Label (new Rect (80,10,200,20), ("" + marcadores.contador),marcadorStyle);
+			if (screenValue == Constants.GAMESP  || screenValue == Constants.GAMEMPOFFLINE)
+			{
+///////////////////////////////////////////////////////////////
+			//Para pausar
+				if (!isPaused)
+				{
+					if (GUI.Button(new Rect(Screen.width-120,Screen.height-120,120,120), "Menu", customButton))
+					{
+						Time.timeScale = 0f;
+						isPaused = true;
+					}
+				}
+			//if (isPaused)
+		//	{
+		//		if (GUI.Button(new Rect(10,10,50,50), "Play"))
+		//		{
+		//			Time.timeScale = 1.0f;
+		//			isPaused = false;
+			//	}
+		//	}
+			//////// desplegar menu 
+
+				if (isPaused)
+				{
+					GUI.BeginGroup(new Rect(Screen.width/2 - 150, Screen.height/2 - 150,600, 400));
+
+					//X_INICIAL, Y_INICIAL, BTN_WIDTH, BTN_HEIGHT
+					GUI.Box(new Rect(10, 0, 320, 80), "Opciones");
+
+					if(GUI.Button(new Rect(10, 20, 320, 80), "Resume" , customButton)){
+						print("you clicked  RESUME");
+						Time.timeScale = 1.0f;
+						isPaused = false;
+						//ResumeGame();
+					}
+
+					if(GUI.Button(new Rect(10, 100, 320, 80), "Reiniciar", customButton)){
+					
+						
+						destruirFichas();
+						InitializeSP();
+						marcadores.puntajeBlanco = 0;
+						marcadores.puntajeRojo = 0;
+						marcadores.turnoText = "Blanco";
+						isPaused = false;
+				}
+
+					if(GUI.Button(new Rect(10, 180, 320, 80), "Menu Princ.", customButton)){
+					
+						destruirFichas();
+
+						marcadores.puntajeBlanco = 0;
+						marcadores.puntajeRojo = 0;
+						marcadores.turnoText = "Blanco";
+						isPaused = false;
+
+						screenValue = Constants.MAIN;
+				}
+
+					if(GUI.Button(new Rect(10, 260, 320, 80), "Salir", customButton)){
+					
+						Application.Quit();
+					}
+
+				
+					GUI.EndGroup();
+				}
+			}
+
+	///////////////////////////////////////	///	//////////
+
 
 			if (!PlayerController.end){
 				if (screenValue == Constants.GAMEMP){
