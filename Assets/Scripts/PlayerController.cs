@@ -73,7 +73,7 @@ public class BoardCell
 		// Definir si es un corner
 		corner = (x == 1 || x == (alto - 2)) && (y == 0 || y == (ancho - 1));
         
-		// Definir si es parte del área
+		// Definir si es parte del Ã¡rea
 		area = ((x >= 1 && x <= 4) || (x >= (alto - 5) && x <= (alto - 2))) && 
 			(y >= 1 && y <= (ancho - 2));
 		areaChica = ((x >= 1 && x <= 2) || (x >= (alto - 3) && x <= (alto - 2))) && 
@@ -90,7 +90,7 @@ public class BoardCell
 	/*
      * Indica si la influencia de los equipos se neutraliza en la casilla.
      * Una casilla sin influencia tambien es considerada neutral.
-     * En caso de querer estar seguro que no hay ningún tipo de influencia en la casilla usar InfluenciaCero().
+     * En caso de querer estar seguro que no hay ningÃºn tipo de influencia en la casilla usar InfluenciaCero().
      */
 	public bool influenciaNeutra()
 	{
@@ -107,12 +107,12 @@ public class BoardCell
     
 	/*
      * Indica si un equipo tiene posesion de esta casilla.
-     * Parámetros:
+     * ParÃ¡metros:
      * Equipo - Equipo sobre el que se valora la influencia
      * Estricto - Define el nivel de influencia que se debe tener para tener posesion.
      * Retorna: 
      * true si hay un empate o mayoria de influencia del equipo en el caso no estricto.
-     * true si hay mayoría de influencia del equipo en el caso estricto.
+     * true si hay mayorÃ­a de influencia del equipo en el caso estricto.
      */
 	public bool tieneInfluencia(Equipo equipo, bool estricto)
 	{
@@ -450,6 +450,8 @@ public class PlayerController : MonoBehaviour
 	// Indica el fin del juego
 	public static bool end = false;
 
+	public static float endTime;
+
 	// Estilo
 	public GUIStyle customButton;
 	public GUIStyle customText;
@@ -540,36 +542,39 @@ public class PlayerController : MonoBehaviour
 	void OnGUI()
 	{
 		if (end)
-		{
-			// Cuadro de resultados
-			GUI.Box(new Rect(50,Screen.height*1/4,Screen.width - 100,Screen.height/2 + Screen.height/12),"");
+		{	
+			// Muestro el cuadro de resultados luego de que desaparezca el mensaje de gol
+			if (Time.time > (endTime + 0.75f)){
+				// Cuadro de resultados
+				GUI.Box(new Rect(50,Screen.height*1/4,Screen.width - 100,Screen.height/2 + Screen.height/12),"");
 
-			// Textos del cuadro
-			GUI.Label(new Rect(100, Screen.height*1/4 + 50, Screen.width - 200, 40), "Resultado Final", customText);
-			GUI.Label(new Rect(100, Screen.height*1/4 + (Screen.height/2 + Screen.height/12)*1/4 + 1/8, Screen.width - 200, 40), "Blanco : " + marcadores.puntajeBlanco,customText);
-			GUI.Label(new Rect(100, Screen.height*1/4 + (Screen.height/2 + Screen.height/12)*1/2, Screen.width - 200, 40), "Rojo : " + marcadores.puntajeRojo,customText);
+				// Textos del cuadro
+				GUI.Label(new Rect(100, Screen.height*1/4 + 50, Screen.width - 200, 40), "Resultado Final", customText);
+				GUI.Label(new Rect(100, Screen.height*1/4 + (Screen.height/2 + Screen.height/12)*1/4 + 1/8, Screen.width - 200, 40), "Blanco : " + marcadores.puntajeBlanco,customText);
+				GUI.Label(new Rect(100, Screen.height*1/4 + (Screen.height/2 + Screen.height/12)*1/2, Screen.width - 200, 40), "Rojo : " + marcadores.puntajeRojo,customText);
 
-			// Boton Volver al Menu Principal
-			if (GUI.Button(new Rect(Screen.width / 4, Screen.height * 3/4 + Screen.height/12 - 50 - Screen.width / 6, Screen.width / 2, Screen.width / 6), "Menu Principal", customButton))
-			{
-				// Para multijugador online si uno aprieta el boton los dos vuelven (cliente servidor)
-				if (MenuController.screenValue == Constants.GAMEMP)
+				// Boton Volver al Menu Principal
+				if (GUI.Button(new Rect(Screen.width / 4, Screen.height * 3/4 + Screen.height/12 - 50 - Screen.width / 6, Screen.width / 2, Screen.width / 6), "Menu Principal", customButton))
 				{
-					GetComponent<NetworkView>().RPC("setEnd", RPCMode.All, false);
-					Network.Disconnect();
-					MasterServer.UnregisterHost();
+					// Para multijugador online si uno aprieta el boton los dos vuelven (cliente servidor)
+					if (MenuController.screenValue == Constants.GAMEMP)
+					{
+						GetComponent<NetworkView>().RPC("setEnd", RPCMode.All, false);
+						Network.Disconnect();
+						MasterServer.UnregisterHost();
+					}
+					else if (MenuController.screenValue == Constants.GAMESP)
+					{
+						setEnd(false);
+						MenuController.destruirFichas();
+					}
+					else if (MenuController.screenValue == Constants.GAMEMPOFFLINE)
+					{
+						setEnd(false);
+						MenuController.destruirFichas();
+					}
+					MenuController.screenValue = Constants.MAIN; 
 				}
-				else if (MenuController.screenValue == Constants.GAMESP)
-				{
-					setEnd(false);
-					MenuController.destruirFichas();
-				}
-				else if (MenuController.screenValue == Constants.GAMEMPOFFLINE)
-				{
-					setEnd(false);
-					MenuController.destruirFichas();
-				}
-				MenuController.screenValue = Constants.MAIN; 
 			}
 		}
 	}
@@ -1019,7 +1024,7 @@ public class PlayerController : MonoBehaviour
 		int arcoOffset = (ancho - anchoArco) / 2;
 
 		/// Validar destino
-		// Asegurar que esté dentro del tablero. Los tableros cuentan como fuera del arco excepto en el caso de la pelota.
+		// Asegurar que estÃ© dentro del tablero. Los tableros cuentan como fuera del arco excepto en el caso de la pelota.
 		if (destinoX < 0 || destinoX >= alto ||
 		    destinoY < 0 || destinoY >= ancho || 
 		    ((destinoX == 0 || destinoX == (alto - 1)) &&
@@ -1105,7 +1110,7 @@ public class PlayerController : MonoBehaviour
 		int deltaDestinoY = System.Math.Abs(destinoY - ficha.y);
 		int maximoMovimientos = ficha.ficha == TipoFicha.Pelota ? 4 : 2;
         
-		// El movimiento es en línea recta
+		// El movimiento es en lÃ­nea recta
 		if ((deltaDestinoX == 0 && deltaDestinoY == 0) ||
 			(deltaDestinoX != 0 && deltaDestinoY != 0 &&
 			deltaDestinoX != deltaDestinoY))
@@ -1118,7 +1123,7 @@ public class PlayerController : MonoBehaviour
 			return false;
 		}
         
-		// El movimiento está dentro del rango de la ficha
+		// El movimiento estÃ¡ dentro del rango de la ficha
 		if (deltaDestinoX > maximoMovimientos ||
 			deltaDestinoY > maximoMovimientos)
 		{
@@ -1137,7 +1142,7 @@ public class PlayerController : MonoBehaviour
 			return false;
 		}
         
-		// La casilla objetivo está ocupada
+		// La casilla objetivo estÃ¡ ocupada
 		if (destino.ficha != TipoFicha.Vacio)
 		{
 			if (verbose)
@@ -1147,7 +1152,7 @@ public class PlayerController : MonoBehaviour
 			}
 			return false;
 		}
-		// La casilla objetivo (y las adyacentes en caso de haber un arquero) está libre
+		// La casilla objetivo (y las adyacentes en caso de haber un arquero) estÃ¡ libre
 		if (ficha.ficha != TipoFicha.Pelota)
 		{
 			for (int i = -1; i <= 1; i+=2)
@@ -1229,7 +1234,7 @@ public class PlayerController : MonoBehaviour
 			return false;
 		}
         
-		/// Determinar dirección
+		/// Determinar direcciÃ³n
 		int direccionDestinoX = 0;
 		int direccionDestinoY = 0;
         
@@ -1533,17 +1538,29 @@ public class PlayerController : MonoBehaviour
 	{
 		if (isGoal())
 		{
+
+			// Muestro el mensaje de gol
+			if (MenuController.screenValue == Constants.GAMEMP){
+				GetComponent<NetworkView>().RPC("ejecutarMensajeDeGol", RPCMode.All);
+			}
+			else if (MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE)
+			{
+				StartCoroutine(mensajeDeGol());
+			}
+
 			if (marcadores.puntajeBlanco + marcadores.puntajeRojo == 2)
 			{
 				if (MenuController.screenValue == Constants.GAMEMP)
 				{
 					GetComponent<NetworkView>().RPC("restartPieces", RPCMode.All);
 					GetComponent<NetworkView>().RPC("setEnd", RPCMode.All, true);
+					GetComponent<NetworkView>().RPC("setEndTime", RPCMode.All);
 				}
 				else if (MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE)
 				{
 					restartPieces();
 					setEnd(true);
+					setEndTime();
 				}
 			}
 			else
@@ -1581,6 +1598,17 @@ public class PlayerController : MonoBehaviour
 	}
 
 	[RPC]
+	void ejecutarMensajeDeGol(){
+		StartCoroutine(mensajeDeGol());
+	}
+
+	IEnumerator mensajeDeGol () {
+		GameObject.Find ("GoalImage").GetComponent<Renderer>().enabled = true;
+		yield return new WaitForSeconds(0.75f);
+		GameObject.Find ("GoalImage").GetComponent<Renderer>().enabled = false;
+	}
+
+	[RPC]
 	void setEstado(EstadoJuego nuevoEstado)
 	{
 		estado = nuevoEstado;
@@ -1590,6 +1618,12 @@ public class PlayerController : MonoBehaviour
 	void setEnd(bool value)
 	{
 		end = value;
+	}
+
+	[RPC]
+	void setEndTime()
+	{
+		endTime = Time.time;
 	}
 
 	// Para manejo de turnos
