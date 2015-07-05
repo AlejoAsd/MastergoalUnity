@@ -23,15 +23,15 @@ public class button : MonoBehaviour {
 	}
 	void contador ()
 	{
-		if (bandera) 
+		if (bandera && textura <14) 
 		{
 			bandera = false;
 			textura = textura + 1;	
 			Debug.Log (textura);
 		}
-		if (textura == 12) {
-			textura = -1;
-		}
+		//if (textura == 12) {
+		//	textura = -1;
+		//}
 
 
 	}

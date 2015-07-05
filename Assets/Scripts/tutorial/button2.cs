@@ -19,7 +19,7 @@ public class button2 : MonoBehaviour {
 	}
 	void contador ()
 	{
-		if (button.bandera) 
+		if (button.bandera && button.textura >-1) 
 		{
 			button.bandera = false;
 			button.textura = button.textura - 1;	
@@ -27,9 +27,7 @@ public class button2 : MonoBehaviour {
 			//Debug.Log (textura);
 			//GetComponent<Canvas>().enabled = false;
 		}
-		if (button.textura == -1) {
-			button.textura = 11;
-		}
+
 		
 	}
 }
