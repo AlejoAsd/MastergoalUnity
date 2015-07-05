@@ -64,6 +64,7 @@ public class MenuController : MonoBehaviour
 	public GUIStyle customButton;
 	public GUIStyle customBox;
 	public GUIStyle marcadorStyle ;
+	public GUIStyle menuButton;
 
 	bool isPaused= false;
 	
@@ -552,19 +553,24 @@ public class MenuController : MonoBehaviour
 						//ResumeGame();
 					}
 
-					if(GUI.Button(new Rect(10, 100, 320, 80), "Reiniciar", customButton)){
+					// REINICIA EL JUEGO
+					if(GUI.Button(new Rect(10, 110, 320, 80), "Reiniciar", customButton)){
 					
-						
+						PlayerController.end = false;
 						destruirFichas();
-						InitializeSP();
 						marcadores.puntajeBlanco = 0;
 						marcadores.puntajeRojo = 0;
 						marcadores.turnoText = "Blanco";
 						isPaused = false;
-				}
 
-					if(GUI.Button(new Rect(10, 180, 320, 80), "Menu Princ.", customButton)){
+						InitializeSP();
+
+				}
+					///LLEVA AL MENU PRINCIPAL
+
+					if(GUI.Button(new Rect(10, 200, 320, 80), "Menu Princ.", customButton)){
 					
+						PlayerController.end = false;
 						destruirFichas();
 
 						marcadores.puntajeBlanco = 0;
@@ -575,7 +581,8 @@ public class MenuController : MonoBehaviour
 						screenValue = Constants.MAIN;
 				}
 
-					if(GUI.Button(new Rect(10, 260, 320, 80), "Salir", customButton)){
+					// SALE DEL JUEGO
+					if(GUI.Button(new Rect(10, 290, 320, 80), "Salir", customButton)){
 					
 						Application.Quit();
 					}
