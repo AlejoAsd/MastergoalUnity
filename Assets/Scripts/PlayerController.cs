@@ -213,6 +213,9 @@ public class Estado
 	public BoardCell arqueroJugador;
 	public BoardCell arqueroOponente;
 
+
+
+
 	private const int infinito = 1000000000;
 	
 	public Estado(BoardCell[,] board, int nivel, int alto, int ancho, Equipo equipo)
@@ -416,6 +419,7 @@ public class PlayerController : MonoBehaviour
 	public const string ID_P2F4 = "P2F4";
 	public const string ID_P2F5 = "P2F5";
 
+
 	// AI
 	private const int infinito = 1000000000;
 	private const int profundidad = 1;
@@ -574,6 +578,7 @@ public class PlayerController : MonoBehaviour
 						MenuController.destruirFichas();
 					}
 					MenuController.screenValue = Constants.MAIN; 
+
 				}
 			}
 		}

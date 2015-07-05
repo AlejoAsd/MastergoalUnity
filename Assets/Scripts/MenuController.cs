@@ -35,6 +35,7 @@ public class MenuController : MonoBehaviour
 
 	/**************************** Variables ****************************/
 
+
 	// Variables globales
 	public static int level;
 	public static int screenValue = Constants.MAIN;
@@ -67,6 +68,7 @@ public class MenuController : MonoBehaviour
 	public GUIStyle menuButton;
 
 	bool isPaused= false;
+
 	
 
 	/**************************** Funciones de red ****************************/ 
@@ -332,6 +334,7 @@ public class MenuController : MonoBehaviour
 		if (screenValue == Constants.MAIN)
 		{
 
+
 			generateTitle();
 
 			// Boton Crear Partida Individual
@@ -356,6 +359,7 @@ public class MenuController : MonoBehaviour
 			{
 				screenValue = Constants.TUTORIAL;
 			}
+
 
 		} 
 
@@ -523,7 +527,7 @@ public class MenuController : MonoBehaviour
 			//Para pausar
 				if (!isPaused)
 				{
-					if (GUI.Button(new Rect(Screen.width-120,Screen.height-120,120,120), "Menu", customButton))
+					if (GUI.Button(new Rect(Screen.width-140,Screen.height-120,140,120), "Menu", menuButton))
 					{
 						Time.timeScale = 0f;
 						isPaused = true;
@@ -541,12 +545,12 @@ public class MenuController : MonoBehaviour
 
 				if (isPaused)
 				{
-					GUI.BeginGroup(new Rect(Screen.width/2 - 150, Screen.height/2 - 150,600, 400));
+					GUI.BeginGroup(new Rect(Screen.width/7, Screen.height/2 - 150, Screen.width/2 + Screen.width/5 , 400));
 
 					//X_INICIAL, Y_INICIAL, BTN_WIDTH, BTN_HEIGHT
-					GUI.Box(new Rect(10, 0, 320, 80), "Opciones");
+					//GUI.Box(new Rect(10, 0, 320, 80), "Opciones");
 
-					if(GUI.Button(new Rect(10, 20, 320, 80), "Resume" , customButton)){
+					if(GUI.Button(new Rect(10, 20,Screen.width/2 + Screen.width/5, 80), "Continuar" , menuButton)){
 						print("you clicked  RESUME");
 						Time.timeScale = 1.0f;
 						isPaused = false;
@@ -554,7 +558,7 @@ public class MenuController : MonoBehaviour
 					}
 
 					// REINICIA EL JUEGO
-					if(GUI.Button(new Rect(10, 110, 320, 80), "Reiniciar", customButton)){
+					if(GUI.Button(new Rect(10, 110, Screen.width/2 + Screen.width/5, 80), "Reiniciar", menuButton)){
 					
 						PlayerController.end = false;
 						destruirFichas();
@@ -568,7 +572,7 @@ public class MenuController : MonoBehaviour
 				}
 					///LLEVA AL MENU PRINCIPAL
 
-					if(GUI.Button(new Rect(10, 200, 320, 80), "Menu Princ.", customButton)){
+					if(GUI.Button(new Rect(10, 200, Screen.width/2 + Screen.width/4, 80), "Menu Principal", menuButton)){
 					
 						PlayerController.end = false;
 						destruirFichas();
@@ -582,7 +586,7 @@ public class MenuController : MonoBehaviour
 				}
 
 					// SALE DEL JUEGO
-					if(GUI.Button(new Rect(10, 290, 320, 80), "Salir", customButton)){
+					if(GUI.Button(new Rect(10, 290, Screen.width/2 + Screen.width/4, 80), "Salir", menuButton)){
 					
 						Application.Quit();
 					}
