@@ -35,7 +35,6 @@ public class MenuController : MonoBehaviour
 
 	/**************************** Variables ****************************/
 
-
 	// Variables globales
 	public static int level;
 	public static int screenValue = Constants.MAIN;
@@ -68,8 +67,6 @@ public class MenuController : MonoBehaviour
 	public GUIStyle menuButton;
 
 	bool isPaused= false;
-
-	
 
 	/**************************** Funciones de red ****************************/ 
 	//Inicializar servidor
@@ -134,26 +131,6 @@ public class MenuController : MonoBehaviour
 		int number = Random.Range(0, 100);
 		return "Juego" + number + "-Nivel" + level;
 	}
-
-	/*public void update()
-	{
-		marcadores.contFloat -= Time.deltaTime;
-		marcadores.contador = (int)marcadores.contFloat;
-		
-		// esto es para que desaparezca el mensaje de error en cierto tiempo
-		marcadores.contadorErrorFloat -= Time.deltaTime;
-		marcadores.contadorError = (int)marcadores.contadorErrorFloat;
-		
-		if (marcadores.contadorError <= 0)// o fin de turno
-		{
-			marcadores.ShowLabel = false;
-		}
-		
-		if (marcadores.contador == 0)// o fin de turno
-		{
-			marcadores.contador = 45;
-		}
-	}*/
 
 	void InitializeSP()
 	{
@@ -501,103 +478,6 @@ public class MenuController : MonoBehaviour
 		/**************************** Pantalla de Juego ****************************/
 		if (screenValue == Constants.GAMESP || screenValue == Constants.GAMEMP || screenValue == Constants.GAMEMPOFFLINE)
 		{
-			//marcadorStyle=  Mathf.Min(Mathf.FloorToInt(Screen.width * fontSize/1000), Mathf.FloorToInt(Screen.height * fontSize/1000));
-			
-			/*if (marcadores.ajusteResolucion == 0)
-			{
-				marcadorStyle.fontSize = Mathf.Min(Mathf.FloorToInt(Screen.width * marcadorStyle.fontSize / 1080), Mathf.FloorToInt(Screen.height * marcadorStyle.fontSize / 1920));
-				marcadores.ajusteResolucion = 1;
-			}*/
-			
-			//update();// actualiza el valor del cronometro
-			
-			/*if (marcadores.ShowLabel)
-			{// esto es para los mensajes de error
-				GUI.Label(new Rect(Screen.width / 10, 10, 200, 40), marcadores.errorText, marcadorStyle);
-			}*/
-			
-			// para que desaparezca el  mensaje error
-			//GUI.Label (new Rect (80,10,200,20), ("" + marcadores.contadorError),marcadorStyle);
-			
-			// muestra el contador
-			//GUI.Label (new Rect (80,10,200,20), ("" + marcadores.contador),marcadorStyle);
-			if (screenValue == Constants.GAMESP  || screenValue == Constants.GAMEMPOFFLINE)
-			{
-///////////////////////////////////////////////////////////////
-			//Para pausar
-				if (!isPaused)
-				{
-					if (GUI.Button(new Rect(Screen.width-140,Screen.height-120,140,120), "Menu", menuButton))
-					{
-						Time.timeScale = 0f;
-						isPaused = true;
-					}
-				}
-			//if (isPaused)
-		//	{
-		//		if (GUI.Button(new Rect(10,10,50,50), "Play"))
-		//		{
-		//			Time.timeScale = 1.0f;
-		//			isPaused = false;
-			//	}
-		//	}
-			//////// desplegar menu 
-
-				if (isPaused)
-				{
-					GUI.BeginGroup(new Rect(Screen.width/7, Screen.height/2 - 150, Screen.width/2 + Screen.width/5 , 400));
-
-					//X_INICIAL, Y_INICIAL, BTN_WIDTH, BTN_HEIGHT
-					//GUI.Box(new Rect(10, 0, 320, 80), "Opciones");
-
-					if(GUI.Button(new Rect(10, 20,Screen.width/2 + Screen.width/5, 80), "Continuar" , menuButton)){
-						print("you clicked  RESUME");
-						Time.timeScale = 1.0f;
-						isPaused = false;
-						//ResumeGame();
-					}
-
-					// REINICIA EL JUEGO
-					if(GUI.Button(new Rect(10, 110, Screen.width/2 + Screen.width/5, 80), "Reiniciar", menuButton)){
-					
-						PlayerController.end = false;
-						destruirFichas();
-						marcadores.puntajeBlanco = 0;
-						marcadores.puntajeRojo = 0;
-						marcadores.turnoText = "Blanco";
-						isPaused = false;
-
-						InitializeSP();
-
-				}
-					///LLEVA AL MENU PRINCIPAL
-
-					if(GUI.Button(new Rect(10, 200, Screen.width/2 + Screen.width/4, 80), "Menu Principal", menuButton)){
-					
-						PlayerController.end = false;
-						destruirFichas();
-
-						marcadores.puntajeBlanco = 0;
-						marcadores.puntajeRojo = 0;
-						marcadores.turnoText = "Blanco";
-						isPaused = false;
-
-						screenValue = Constants.MAIN;
-				}
-
-					// SALE DEL JUEGO
-					if(GUI.Button(new Rect(10, 290, Screen.width/2 + Screen.width/4, 80), "Salir", menuButton)){
-					
-						Application.Quit();
-					}
-
-				
-					GUI.EndGroup();
-				}
-			}
-
-	///////////////////////////////////////	///	//////////
-
 
 			if (!PlayerController.end){
 				if (screenValue == Constants.GAMEMP){
@@ -613,6 +493,56 @@ public class MenuController : MonoBehaviour
 				// Muestro los puntajes
 				GUI.Label(new Rect(10, 110, 200, 20), ("Blanco : " + marcadores.puntajeBlanco), marcadorStyle);
 				GUI.Label(new Rect(10, 160, 200, 20), ("Rojo : " + marcadores.puntajeRojo), marcadorStyle);
+
+				// Agrego un menu de juego para juegos SP y MPOFFLINE
+				if (screenValue == Constants.GAMESP  || screenValue == Constants.GAMEMPOFFLINE)
+				{
+					//Para pausar
+					if (!isPaused)
+					{
+						if (GUI.Button(new Rect(Screen.width-120,Screen.height-120,120,120), "Menu", customButton))
+						{
+							isPaused = true;
+						}
+					}
+					
+					if (isPaused)
+					{
+						GUI.BeginGroup(new Rect(Screen.width/2 - 150, Screen.height/2 - 150,600, 400));
+						
+						GUI.Box(new Rect(5, 15, 330, 360), "");
+						
+						// CONTINUA EL JUEGO
+						if(GUI.Button(new Rect(10, 20, 320, 80), "Continuar" , customButton)){
+							print("you clicked Continuar");
+							isPaused = false;
+						}
+						
+						// REINICIA EL JUEGO
+						if(GUI.Button(new Rect(10, 110, 320, 80), "Reiniciar", customButton)){
+							PlayerController.end = false;
+							destruirFichas();
+							isPaused = false;
+							InitializeSP();
+						}
+						
+						///LLEVA AL MENU PRINCIPAL
+						if(GUI.Button(new Rect(10, 200, 320, 80), "Menu Principal", customButton)){
+							screenValue = Constants.MAIN;
+							PlayerController.end = false;
+							destruirFichas();
+							isPaused = false;
+						}
+						
+						// SALE DEL JUEGO
+						if(GUI.Button(new Rect(10, 290, 320, 80), "Salir", customButton)){
+							Application.Quit();
+						}
+						
+						GUI.EndGroup();
+					}
+				}
+
 			}
 		}
 
@@ -652,6 +582,7 @@ public class MenuController : MonoBehaviour
 					screenValue = Constants.MAIN;
 					break;
 			}
+			isPaused = false;
 		}
 	}
 
