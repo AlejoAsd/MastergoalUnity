@@ -494,18 +494,18 @@ public class MenuController : MonoBehaviour
 				GUI.Label(new Rect(10, 110, 200, 20), ("Blanco : " + marcadores.puntajeBlanco), marcadorStyle);
 				GUI.Label(new Rect(10, 160, 200, 20), ("Rojo : " + marcadores.puntajeRojo), marcadorStyle);
 
+				//Para pausar
+				if (!isPaused)
+				{
+					if (GUI.Button(new Rect(Screen.width-120,Screen.height-120,120,120), "Menu", customButton))
+					{
+						isPaused = true;
+					}
+				}
+
 				// Agrego un menu de juego para juegos SP y MPOFFLINE
 				if (screenValue == Constants.GAMESP  || screenValue == Constants.GAMEMPOFFLINE)
-				{
-					//Para pausar
-					if (!isPaused)
-					{
-						if (GUI.Button(new Rect(Screen.width-120,Screen.height-120,120,120), "Menu", customButton))
-						{
-							isPaused = true;
-						}
-					}
-					
+				{	
 					if (isPaused)
 					{
 						GUI.BeginGroup(new Rect(Screen.width/2 - 150, Screen.height/2 - 150,600, 400));
@@ -536,6 +536,40 @@ public class MenuController : MonoBehaviour
 						
 						// SALE DEL JUEGO
 						if(GUI.Button(new Rect(10, 290, 320, 80), "Salir", customButton)){
+							Application.Quit();
+						}
+						
+						GUI.EndGroup();
+					}
+				}
+
+				// Agrego un menu de juego para el juego multijugador online
+				if (screenValue == Constants.GAMEMP)
+				{	
+					if (isPaused)
+					{
+						GUI.BeginGroup(new Rect(Screen.width/2 - 150, Screen.height/2 - 150,600, 400));
+						
+						GUI.Box(new Rect(5, 15, 330, 270), "");
+						
+						// CONTINUA EL JUEGO
+						if(GUI.Button(new Rect(10, 20, 320, 80), "Continuar" , customButton)){
+							print("you clicked Continuar");
+							isPaused = false;
+						}
+						
+						///LLEVA AL MENU PRINCIPAL
+						if(GUI.Button(new Rect(10, 110, 320, 80), "Menu Principal", customButton)){
+							Network.Disconnect();
+							MasterServer.UnregisterHost();
+							screenValue = Constants.MAIN;
+							PlayerController.end = false;
+							destruirFichas();
+							isPaused = false;
+						}
+						
+						// SALE DEL JUEGO
+						if(GUI.Button(new Rect(10, 200, 320, 80), "Salir", customButton)){
 							Application.Quit();
 						}
 						
