@@ -23,7 +23,7 @@ public class button : MonoBehaviour {
 	}
 	void contador ()
 	{
-		if (bandera && textura <14) 
+		if (bandera && textura <19) 
 		{
 			bandera = false;
 			textura = textura + 1;	
