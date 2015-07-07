@@ -7,7 +7,6 @@ public enum EstadoJuego
 	Iniciando,
 	Juego,
 	Pase,
-	Movimiento,
 	Reiniciando,
 	Fin
 }
@@ -421,6 +420,8 @@ public class PlayerController : MonoBehaviour
 
 
 	// AI
+    private List<Jugada> jugadasAI;
+    private int jugadaAI;
 	private const int infinito = 1000000000;
 	private const int profundidad = 1;
 
@@ -516,12 +517,35 @@ public class PlayerController : MonoBehaviour
 
 	void Update()
 	{   
+		// Evitar que otros controllers se ejecuten cuando no se esta en modo multiplayer
 		if ((MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE) && this.tag != ID_P1F1)
 		{
 			return;
 		}
 
-		if (MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE || (MenuController.screenValue == Constants.GAMEMP && GetComponent<NetworkView>().isMine))
+        // Turno de la computadora
+        if (MenuController.screenValue == Constants.GAMESP && turno == Equipo.Rojo &&
+            (estado == EstadoJuego.Juego || estado == EstadoJuego.Pase))
+        {
+            // Calcular la jugada de turno en caso que no se haya definido
+            if (jugadasAI == null)
+            {
+                jugadasAI = jugar(MenuController.level, profundidad, turno);
+            }
+            System.Threading.Thread.Sleep(700);
+
+            bool evaluar = selected == ID_Pelota;
+            moverFicha(jugadasAI[jugadaAI]);
+            jugadaAI += 1;
+            if (evaluar)
+            {
+                evaluarFin();                    
+            }
+        }
+        // Turno del jugador
+		else if (MenuController.screenValue == Constants.GAMESP || 
+                 MenuController.screenValue == Constants.GAMEMPOFFLINE || 
+                 (MenuController.screenValue == Constants.GAMEMP && GetComponent<NetworkView>().isMine))
 		{
 			InputMovement();
 		}
@@ -537,7 +561,7 @@ public class PlayerController : MonoBehaviour
 		}
 
 		/* HACK // No permitir jugar hasta que hayan dos jugadores
-		if (Network.isServer && Network.connections.Length == Network.maxConnections && estado == EstadoJuego.Iniciando)
+		if (estado == EstadoJuego.Iniciando && Network.isServer && Network.connections.Length == Network.maxConnections)
 		{
 			setEstado(EstadoJuego.Juego);
 		}*/
@@ -567,12 +591,7 @@ public class PlayerController : MonoBehaviour
 						Network.Disconnect();
 						MasterServer.UnregisterHost();
 					}
-					else if (MenuController.screenValue == Constants.GAMESP)
-					{
-						setEnd(false);
-						MenuController.destruirFichas();
-					}
-					else if (MenuController.screenValue == Constants.GAMEMPOFFLINE)
+                    else if (MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE)
 					{
 						setEnd(false);
 						MenuController.destruirFichas();
@@ -633,25 +652,6 @@ public class PlayerController : MonoBehaviour
 					{
 						evaluarFin();
                     }
-
-					// En caso que sea el turno de la computadora jugar
-					if (end == false && MenuController.screenValue == Constants.GAMESP && turno == Equipo.Rojo)
-					{
-						List<Jugada> jugadas = jugar(MenuController.level, profundidad, turno);
-						foreach (Jugada jugada in jugadas)
-						{
-							evaluar = selected == ID_Pelota;
-							moverFicha(jugada);
-							if (evaluar)
-							{
-								evaluarFin();
-								if (end)
-								{
-									break;
-								}
-							}
-						}
-					}
                 }
 			}	
 		}	
@@ -777,12 +777,12 @@ public class PlayerController : MonoBehaviour
 			BoardCell pelota = obtenerPelotaAdyacente(board[destinoX, destinoY]);
 			if (pelota != null && pelota.tieneInfluencia(turno, true))
 			{
-				estado = EstadoJuego.Pase;
+                estado = EstadoJuego.Pase;
 				selectDeselectPiece(ID_Pelota);
 			}
 			else
 			{
-				estado = EstadoJuego.Juego;
+                estado = EstadoJuego.Juego;
 				bool especial = board[destinoX, destinoY].ficha == TipoFicha.Pelota &&
 								board[destinoX, destinoY].especial && 
 								board[destinoX, destinoY].equipo != turno;
@@ -791,15 +791,6 @@ public class PlayerController : MonoBehaviour
 				{
 					jugadaEspecial = true;
 					pases -= 1;
-					// En caso que sea el turno de la computadora debe volver a jugar
-					if (MenuController.screenValue == Constants.GAMESP && turno == Equipo.Rojo)
-					{
-						List<Jugada> jugadas = jugar(MenuController.level, profundidad, turno);
-						foreach (Jugada jugada in jugadas)
-						{
-							moverFicha(jugada);
-						}
-					}
 				}
 				else
 				{
@@ -1578,7 +1569,7 @@ public class PlayerController : MonoBehaviour
 				{
 					restartPieces();
 				}
-				
+				/*
 				// En caso que sea el turno de la computadora jugar
 				if (end == false && MenuController.screenValue == Constants.GAMESP && turno == Equipo.Rojo)
 				{
@@ -1596,7 +1587,7 @@ public class PlayerController : MonoBehaviour
 							}
 						}
 					}
-				}
+				}*/
 			}
 			
 		}
@@ -1636,11 +1627,13 @@ public class PlayerController : MonoBehaviour
 	void cambiarTurno()
 	{
 		jugadaEspecial = false;
+        jugadasAI = null;
+        jugadaAI = 0;
 		pases = 0;
 		cantidadTurnos += 1;
 
-		// Si se llego a los 50 turnos termiar el partido con el puntaje actual
-		if (cantidadTurnos > 50)
+		// Si se llego a los 50 turnos para cada jugador terminar el partido con el puntaje actual
+		if (cantidadTurnos > 100)
 		{
 			if (MenuController.screenValue == Constants.GAMEMP)
 			{

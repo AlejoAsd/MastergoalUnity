@@ -364,7 +364,7 @@ public class MenuController : MonoBehaviour
 				else if (screenValue == Constants.LEVELSELECTIONMPOFFLINE)
 				{
 					InitializeSP();
-					screenValue = Constants.GAMEMPOFFLINE;
+                    screenValue = Constants.GAMEMPOFFLINE;
 				}
 			}
 			
@@ -375,18 +375,18 @@ public class MenuController : MonoBehaviour
 				if (screenValue == Constants.LEVELSELECTIONSP)
 				{
 					InitializeSP();
-					screenValue = Constants.GAMESP;
+                    screenValue = Constants.GAMESP;
 				}
 				else if (screenValue == Constants.LEVELSELECTIONMP)
 				{
 					gameName = generateRoomName(level);
 					StartServer();
-					screenValue = Constants.GAMEMP;
+                    screenValue = Constants.GAMEMP;
 				}
 				else if (screenValue == Constants.LEVELSELECTIONMPOFFLINE)
 				{
 					InitializeSP();
-					screenValue = Constants.GAMEMPOFFLINE;
+                    screenValue = Constants.GAMEMPOFFLINE;
 				}
 			}
 
@@ -397,18 +397,18 @@ public class MenuController : MonoBehaviour
 				if (screenValue == Constants.LEVELSELECTIONSP)
 				{
 					InitializeSP();
-					screenValue = Constants.GAMESP;
+                    screenValue = Constants.GAMESP;
 				}
 				else if (screenValue == Constants.LEVELSELECTIONMP)
 				{
 					gameName = generateRoomName(level);
 					StartServer();
-					screenValue = Constants.GAMEMP;
+                    screenValue = Constants.GAMEMP;
 				}
 				else if (screenValue == Constants.LEVELSELECTIONMPOFFLINE)
 				{
 					InitializeSP();	
-					screenValue = Constants.GAMEMPOFFLINE;
+                    screenValue = Constants.GAMEMPOFFLINE;
 				}
 			}
 
