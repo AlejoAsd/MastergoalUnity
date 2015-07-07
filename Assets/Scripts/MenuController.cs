@@ -63,6 +63,7 @@ public class MenuController : MonoBehaviour
 	public GUIStyle customStyle;
 	public GUIStyle customButton;
 	public GUIStyle customBox;
+	public GUIStyle customText;
 	public GUIStyle marcadorStyle ;
 	public GUIStyle menuButton;
 
@@ -577,7 +578,41 @@ public class MenuController : MonoBehaviour
 					}
 				}
 
+			} else if (PlayerController.end){
+				if (screenValue == Constants.GAMESP || screenValue == Constants.GAMEMPOFFLINE){
+					// Muestro el cuadro de resultados luego de que desaparezca el mensaje de gol
+					if (Time.time > (PlayerController.endTime + 0.75f)){
+						// Cuadro de resultados
+						GUI.Box(new Rect(50,Screen.height*1/4,Screen.width - 100,Screen.height/2 + Screen.height/12),"");
+						
+						// Textos del cuadro
+						GUI.Label(new Rect(100, Screen.height*1/4 + 50, Screen.width - 200, 40), "Resultado Final", customText);
+						GUI.Label(new Rect(100, Screen.height*1/4 + (Screen.height/2 + Screen.height/12)*1/4 + 1/8, Screen.width - 200, 40), "Blanco : " + marcadores.puntajeBlanco,customText);
+						GUI.Label(new Rect(100, Screen.height*1/4 + (Screen.height/2 + Screen.height/12)*1/4 + 1/8 + 110, Screen.width - 200, 40), "Rojo : " + marcadores.puntajeRojo,customText);
+						
+						// Boton Reiniciar
+						if (GUI.Button(new Rect(Screen.width / 4, Screen.height * 3/4 + Screen.height/12 - 50 - Screen.width / 6 - Screen.width / 6 - 20, Screen.width / 2, Screen.width / 6), "Reiniciar", customButton))
+						{
+							PlayerController.end = false;
+							destruirFichas();
+							isPaused = false;
+							InitializeSP();	
+						}
+						
+						// Boton Volver al Menu Principal
+						if (GUI.Button(new Rect(Screen.width / 4, Screen.height * 3/4 + Screen.height/12 - 50 - Screen.width / 6, Screen.width / 2, Screen.width / 6), "Menu Principal", customButton))
+						{
+							PlayerController.end = false;
+							destruirFichas();
+							screenValue = Constants.MAIN; 
+							isPaused = false;
+						}
+						
+					}
+				}
 			}
+
+
 		}
 
 	}

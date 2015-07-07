@@ -571,33 +571,26 @@ public class PlayerController : MonoBehaviour
 	{
 		if (end)
 		{	
-			// Muestro el cuadro de resultados luego de que desaparezca el mensaje de gol
-			if (Time.time > (endTime + 0.75f)){
-				// Cuadro de resultados
-				GUI.Box(new Rect(50,Screen.height*1/4,Screen.width - 100,Screen.height/2 + Screen.height/12),"");
-
-				// Textos del cuadro
-				GUI.Label(new Rect(100, Screen.height*1/4 + 50, Screen.width - 200, 40), "Resultado Final", customText);
-				GUI.Label(new Rect(100, Screen.height*1/4 + (Screen.height/2 + Screen.height/12)*1/4 + 1/8, Screen.width - 200, 40), "Blanco : " + marcadores.puntajeBlanco,customText);
-				GUI.Label(new Rect(100, Screen.height*1/4 + (Screen.height/2 + Screen.height/12)*1/2, Screen.width - 200, 40), "Rojo : " + marcadores.puntajeRojo,customText);
-
-				// Boton Volver al Menu Principal
-				if (GUI.Button(new Rect(Screen.width / 4, Screen.height * 3/4 + Screen.height/12 - 50 - Screen.width / 6, Screen.width / 2, Screen.width / 6), "Menu Principal", customButton))
-				{
-					// Para multijugador online si uno aprieta el boton los dos vuelven (cliente servidor)
-					if (MenuController.screenValue == Constants.GAMEMP)
+			if (MenuController.screenValue == Constants.GAMEMP){
+				// Muestro el cuadro de resultados luego de que desaparezca el mensaje de gol
+				if (Time.time > (endTime + 0.75f)){
+					// Cuadro de resultados
+					GUI.Box(new Rect(50,Screen.height*1/4,Screen.width - 100,Screen.height/2 + Screen.height/12),"");
+					
+					// Textos del cuadro
+					GUI.Label(new Rect(100, Screen.height*1/4 + 50, Screen.width - 200, 40), "Resultado Final", customText);
+					GUI.Label(new Rect(100, Screen.height*1/4 + (Screen.height/2 + Screen.height/12)*1/4 + 1/8, Screen.width - 200, 40), "Blanco : " + marcadores.puntajeBlanco,customText);
+					GUI.Label(new Rect(100, Screen.height*1/4 + (Screen.height/2 + Screen.height/12)*1/2, Screen.width - 200, 40), "Rojo : " + marcadores.puntajeRojo,customText);
+					
+					// Boton Volver al Menu Principal
+					if (GUI.Button(new Rect(Screen.width / 4, Screen.height * 3/4 + Screen.height/12 - 50 - Screen.width / 6, Screen.width / 2, Screen.width / 6), "Menu Principal", customButton))
 					{
+						// Si uno aprieta el boton los dos vuelven (cliente servidor)
 						GetComponent<NetworkView>().RPC("setEnd", RPCMode.All, false);
 						Network.Disconnect();
 						MasterServer.UnregisterHost();
+						MenuController.screenValue = Constants.MAIN; 
 					}
-                    else if (MenuController.screenValue == Constants.GAMESP || MenuController.screenValue == Constants.GAMEMPOFFLINE)
-					{
-						setEnd(false);
-						MenuController.destruirFichas();
-					}
-					MenuController.screenValue = Constants.MAIN; 
-
 				}
 			}
 		}
