@@ -790,6 +790,8 @@ public class PlayerController : MonoBehaviour
 				if (especial && !jugadaEspecial)
 				{
 					jugadaEspecial = true;
+					jugadasAI = null;
+					jugadaAI = 0;
 					pases -= 1;
 				}
 				else
