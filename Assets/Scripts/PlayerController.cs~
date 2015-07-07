@@ -1571,25 +1571,6 @@ public class PlayerController : MonoBehaviour
 				{
 					restartPieces();
 				}
-				/*
-				// En caso que sea el turno de la computadora jugar
-				if (end == false && MenuController.screenValue == Constants.GAMESP && turno == Equipo.Rojo)
-				{
-					List<Jugada> jugadas = jugar(MenuController.level, profundidad, turno);
-					foreach (Jugada jugada in jugadas)
-					{
-						bool evaluar = selected == ID_Pelota;
-						moverFicha(jugada);
-						if (evaluar)
-						{
-							evaluarFin();
-							if (end)
-							{
-								break;
-							}
-						}
-					}
-				}*/
 			}
 			
 		}
