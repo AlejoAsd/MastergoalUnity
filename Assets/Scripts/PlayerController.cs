@@ -535,8 +535,8 @@ public class PlayerController : MonoBehaviour
             System.Threading.Thread.Sleep(700);
 
             bool evaluar = selected == ID_Pelota;
+			jugadaAI += 1;
             moverFicha(jugadasAI[jugadaAI]);
-            jugadaAI += 1;
             if (evaluar)
             {
                 evaluarFin();                    
@@ -791,7 +791,7 @@ public class PlayerController : MonoBehaviour
 				{
 					jugadaEspecial = true;
 					jugadasAI = null;
-					jugadaAI = 0;
+					jugadaAI = -1;
 					pases -= 1;
 				}
 				else
@@ -1611,7 +1611,7 @@ public class PlayerController : MonoBehaviour
 	{
 		jugadaEspecial = false;
         jugadasAI = null;
-        jugadaAI = 0;
+        jugadaAI = -1;
 		pases = 0;
 		cantidadTurnos += 1;
 
